@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <ctime>
 
+//type typedefs for consistency across all ECS files
 namespace ecs
 {
 	using int8		= char;
