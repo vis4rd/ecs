@@ -17,8 +17,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 ###################################################################################################
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/include)
-file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+message(STATUS "[INFO] Searching for header directories...")
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+	message(STATUS "[INFO] Found ${dir}")
+endforeach()
+
+file(GLOB_RECURSE SOURCES src/*.cpp)
 
 add_executable(${PROGRAM_NAME} ${SOURCES} ${PROJECT_SOURCE_DIR}/main.cpp)
 target_link_libraries(${PROGRAM_NAME} PUBLIC m)
