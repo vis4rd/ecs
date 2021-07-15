@@ -56,27 +56,67 @@ namespace util
 namespace meta
 {
 	template <typename ...Types>
-	struct TypeList {};
+	struct TypeList
+	{
+		template <uint64 Index>
+  		using TypeOfIndex = typename std::tuple_element<Index, std::tuple<Types ...>>::type;
 
-	template <typename ...Types>
+  		static constexpr uint16 TypeCount = std::tuple_size<std::tuple<Types ...>>::value;
+
+  		template <typename Type>
+  		static constexpr uint64 IndexOfType()
+  		{
+  			return IndexOfTypeHelper<0, Type>();
+  		}
+
+  	private:
+  		template <uint64 Index, typename Type>
+		static constexpr uint64 IndexOfTypeHelper()
+		{
+		    if constexpr(std::is_same<Type, TypeOfIndex<Index>>::value )
+		    {
+		        return Index;
+		    }
+		    else
+		    {
+		    	if constexpr(Index + 1 < TypeCount)
+		    	{
+		    		return IndexOfTypeHelper<Index+1, Type>();
+		    	}
+		        else
+		        {
+		        	static_assert(Index + 1 < TypeCount, "Given type is not in the TypeList");
+		        	return 65;
+		        }
+		    }
+		}
+	};
+
+	/*template <typename ...Types>
 	using TupleOfVectors = std::tuple<std::vector<Types> ...>;
 
-	template<typename... Types>
+	template <typename ...Types>
 	std::tuple<Types...> TupleFromTypeListHelper(TypeList<Types...>);
 
-	template<typename List>
-	using TupleFromTypeList = decltype(TupleFromTypeListHelper(std::declval<List>()));
+	template <typename List>
+	using TupleFromTypeList = decltype(TupleFromTypeListHelper(std::declval<List>()));*/
 
-	template <std::size_t iter, typename List>
-	constexpr void print_TypeList_Helper(TupleFromTypeList<List> type_tuple)
+	// template <uint64 index, typename Types>
+	// constexpr auto &GetVector(TupleOfVectors &container)
+	// {
+	// 	return std::tuple_element<decltype(container)
+	// }
+
+	template <uint64 iter, typename List>
+	constexpr void print_TypeList_Helper()
 	{
-	    if constexpr(iter >= std::size_t{0}
-	    			&& iter < std::tuple_size<decltype(type_tuple)>())  // compile-time if
+	    if constexpr(iter >= uint64{0}
+	    			&& iter < List::TypeCount)  // compile-time if
 	    {
-	    	static_assert(iter >= std::size_t{0},
-	    		"void print_TypeList_Helper(TupleFromTypeList<List> type_tuple) : iter < 0");
-		    std::cout << util::type_name_to_string<decltype(std::get<iter>(type_tuple))>() << std::endl;
-		    print_TypeList_Helper<iter + 1, List>(type_tuple);
+	    	static_assert(iter >= uint64{0},
+	    		"void print_TypeList_Helper() : iter < 0");
+		    std::cout << util::type_name_to_string<typename List::TypeOfIndex<iter>>() << std::endl;
+		    print_TypeList_Helper<iter + 1, List>();
 	    }
 	    else
 	    {
@@ -87,8 +127,7 @@ namespace meta
 	template <typename List>
 	constexpr void print_TypeList()
 	{
-		TupleFromTypeList<List> type_tuple{};
-	    print_TypeList_Helper<0, List>(type_tuple);
+	    print_TypeList_Helper<0, List>();
 	}
 
 }  // namespace meta

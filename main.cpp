@@ -12,9 +12,11 @@ int main()
     struct C0{};
     struct C1{};
     struct C2{};
-    using types = ecs::meta::TypeList<C0, C1, C2, std::string, std::vector<int>, C0, C1, int>;
-    ecs::meta::TupleFromTypeList<types> type_tuple{};
+    using Types = ecs::meta::TypeList<C0, C1, C2, std::string, std::vector<int>>;
 
-    ecs::meta::print_TypeList<types>();  
+    std::cout << "SIZE = " << Types::TypeCount << std::endl;
+    ecs::meta::print_TypeList<Types>();
+
+    std::cout << "INDEX = " << Types::IndexOfType<C0>() << std::endl;
     return 0;
 }
