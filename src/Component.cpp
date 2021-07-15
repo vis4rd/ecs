@@ -1,16 +1,9 @@
-#include "../include/Entity.h"
-
-int64 Component::m_id = 0;
+#include "../include/Component.h"
 
 namespace ecs
 {
 
-static const int64 &Component::getID() noexcept
-{
-	return m_id;
-}
-
-const int64 &Component::getEntityID() const noexcept
+const uint64 &Component::getEntityID() const noexcept
 {
 	return m_entityID;
 }
