@@ -7,58 +7,15 @@ namespace ecs
 {
 namespace meta
 {
-	/*template <typename ...Typepack>
-	struct TypeList
-	{
-		using Type = TypeList<Typepack ...>;
-
-		template <uint64 Index>
-  		using TypeAt = typename std::tuple_element<Index, std::tuple<Typepack ...>>::type;
-
-  		template <typename Type>
-  		static constexpr uint64 IndexOf()
-  		{
-  			return IndexOfHelper<0, Type>();
-  		}
-
-  		template <typename NewType>
-  		using Append = TypeList<Typepack..., NewType>;
-
-  		template <typename NewType>
-  		using Prepend = TypeList<NewType, Typepack...>;
-
-  	private:
-  		template <uint64 Index, typename Type>
-		static constexpr uint64 IndexOfHelper()
-		{
-		    if constexpr(std::is_same<Type, TypeAt<Index>>::value )
-		    {
-		        return Index;
-		    }
-		    else
-		    {
-		    	if constexpr(Index + 1 < TypeCount)
-		    	{
-		    		return IndexOfHelper<Index+1, Type>();
-		    	}
-		        else
-		        {
-		        	static_assert(Index + 1 < TypeCount, "Given type is not in the TypeList");
-		        	return 65;
-		        }
-		    }
-		}
-	};*/
-
 	// ############################################################################################
 	// TypeList
-	
+
 	template <typename ...Typepack>
 	struct TypeList;
 
 	// ############################################################################################
 	// Implementation of TypeListSize.
-	
+
 	template<typename TypeListT>
 	struct TypeListSizeImpl;  // dummy struct used just to hold TypeList
 
@@ -72,12 +29,12 @@ namespace meta
 
 	// ############################################################################################
 	// Implementation of TypeListAt.
-	
+
 	// 1)
-	template<uint64 Index, typename TypeListT>
+	template<uint16 Index, typename TypeListT>
 	struct TypeAtImpl;  // dummy struct used just to hold TypeList and call specialization
 	// 2)
-	template<uint64 Index, typename FirstType, typename... RestOfTypes>
+	template<uint16 Index, typename FirstType, typename... RestOfTypes>
 	struct TypeAtImpl<Index, TypeList<FirstType, RestOfTypes...>>  // specialization of TypeAtImpl for N
 	{
 	    using Type = typename TypeAtImpl<Index - 1, TypeList<RestOfTypes...>>::Type;
@@ -89,56 +46,59 @@ namespace meta
 	    using Type = FirstType;
 	};
 	// 4)
-	template<uint64 Index, typename TypeListT>
+	template<uint16 Index, typename TypeListT>
 	using TypeAt = typename TypeAtImpl<Index, TypeListT>::Type;
 
 	// User calls (4).
 	// (4) calls (1).
 	// (1) calls (2), because (2) is a specialization of (1) and
-	//   TypeList -> (through argument deduction) FirstType + ...RestOfTypes
+	//   TypeList = (through argument deduction) FirstType + ...RestOfTypes
 	//   (extraction of the first type from TypeList).
 	// (2) loops until calls specialization for 0 which is (3).
-	// 
+	//
 	// example:
 	// TypeListAt<2, TypeList<T1, T2, T3>> =>
 	// TypeListAtImpl<2, TypeList<T1, T2, T3>>::Type =>
 	// TypeListAtImpl<1, TypeList<T2, T3>>::Type =>
 	// TypeListAtImpl<0, TypeList<T3>>::Type =>
 	// T3
-	// 
+	//   calls: user -> (4) -> (1) -> (2) -> (1) -> (2) -> (1) -> (3)
+	//
 	// example2:
 	// TypeListAt<1, TypeList<T1, T2, T3>> =>
 	// TypeListAtImpl<1, TypeList<T1, T2, T3>>::Type =>
 	// TypeListAtImpl<0, TypeList<T2, T3>>::Type =>
 	// T2
+	//   calls: user -> (4) -> (1) -> (2) -> (1) -> (3)
 
 	// ############################################################################################
+	// Implementation of IndexOf
 
-	// TBD: IndexOf (https://devblogs.microsoft.com/cppblog/build-throughput-series-more-efficient-template-metaprogramming/)
+	template <uint16 Index, typename Target, typename TypeListT>
+	struct IndexOfImpl;
 
-	/*template <typename ...Typepack>
-	using ComponentPool = TypeList<Typepack...>;
-
-	template <typename ...Typepack>
-	std::tuple<std::vector<Typepack> ...> ComponentBufferContainerHelper(ComponentPool<std::vector<Typepack> ...>);
-
-	template <typename ComponentPoolT>
-	using ComponentBufferContainer = decltype(ComponentBufferContainerHelper(std::declval<ComponentPoolT>()));
-
-	template <typename ComponentPool>
-	struct ComponentBuffer
+	template <uint16 Index, typename Target, typename FirstType, typename... RestOfTypes>
+	struct IndexOfImpl<Index, Target, TypeList<FirstType, RestOfTypes...>>
 	{
-	public:
-		template <typename ComponentT, typename CPT = ComponentPool>
-		auto &PushComponent()
-		{
-			const auto component_id = CPT::IndexOf<ComponentT>();
-			auto &result = std::get<component_id>(m_buffer).emplace_back(std::declval<ComponentT>());
-			return result;
-		}
-	private:
-		ComponentBufferContainer<CPT> m_buffer;
-	};*/
+		static constexpr uint16 ID = ((std::is_same<Target, FirstType>::value) ?
+			Index : IndexOfImpl<Index - 1, Target, TypeList<RestOfTypes...>>::ID);
+	};
+
+	template <typename Target, typename FirstType, typename... RestOfTypes>
+	struct IndexOfImpl<0, Target, TypeList<FirstType, RestOfTypes...>>
+	{
+		static constexpr uint16 ID = (std::is_same<Target, FirstType>::value) ? 0 : -1;
+	};
+
+	template <typename Target, typename TypeListT>
+	constexpr uint64 IndexOf =
+		((IndexOfImpl<TypeListSize<TypeListT> - 1, Target, TypeListT>::ID > uint64{63}) ?
+		(65) :
+		(TypeListSize<TypeListT> - IndexOfImpl<TypeListSize<TypeListT> - 1, Target, TypeListT>::ID - 1));
+
+	// Works similar to the previous example with TypeAt
+
+	// ############################################################################################
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
