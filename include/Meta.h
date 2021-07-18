@@ -104,28 +104,30 @@ namespace meta
 
 	namespace metautil
 	{
-		template <uint64 iter, typename List>
-		constexpr void print_TypeList_Helper()
+		template <typename TypeListT>
+		struct PrintImpl
 		{
-		    if constexpr(iter >= uint64{0}
-		    			&& iter < List::TypeCount)  // compile-time if
-		    {
-		    	static_assert(iter >= uint64{0},
-		    		"void print_TypeList_Helper() : iter < 0");
-			    std::cout << util::type_name_to_string<typename List::TypeOfIndex<iter>>() << std::endl;
-			    print_TypeList_Helper<iter + 1, List>();
-		    }
-		    else
-		    {
-		    	return;
-		    }
-		}
+			template <size_t Index>
+			static void Print()
+			{
+				using Type = TypeAt<Index, TypeListT>;
+				std::cout << util::type_name_to_string<Type>() << std::endl;
+			}
 
-		template <typename List>
-		constexpr void print_TypeList()
-		{
-		    print_TypeList_Helper<0, List>();
-		}
+			template <size_t... Indices>
+			static void PrintAll(std::index_sequence<Indices...>)
+			{
+				(Print<Indices>(), ...);
+			}
+
+			void operator()() const
+			{
+				PrintAll(std::make_index_sequence<TypeListSize<TypeListT>>{});
+			}
+		};
+
+		template <typename TypeListT>
+		constexpr PrintImpl<TypeListT> Print{};
 	}  // namespace metautil
 }  // namespace meta
 }  // namespace ecs
