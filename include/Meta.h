@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Root.h"
 #include "Util.h"
 
 namespace ecs
@@ -111,7 +110,7 @@ namespace meta
 			static void Print()
 			{
 				using Type = TypeAt<Index, TypeListT>;
-				std::cout << util::type_name_to_string<Type>() << std::endl;
+				std::cout << ecs::util::type_name_to_string<Type>() << std::endl;
 			}
 
 			template <size_t... Indices>
@@ -128,6 +127,32 @@ namespace meta
 
 		template <typename TypeListT>
 		constexpr PrintImpl<TypeListT> Print{};
+
+	// ############################################################################################
+
+		template <typename TypeListT>
+		struct TupleOfTypesImpl;
+
+		template <typename... Typepack>
+		struct TupleOfTypesImpl<TypeList<Typepack...>>
+		{
+			using Tuple = std::tuple<Typepack...>;
+		};
+
+		template <typename TypeListT>
+		using TupleOfTypes = typename TupleOfTypesImpl<TypeListT>::Tuple;
+
+		template <typename TypeListT>
+		struct TupleOfVectorsOfTypesImpl;
+
+		template <typename... Typepack>
+		struct TupleOfVectorsOfTypesImpl<TypeList<Typepack...>>
+		{
+			using Tuple = typename std::tuple<std::vector<Typepack> ...>;
+		};
+
+		template <typename TypeListT>
+		using TupleOfVectorsOfTypes = typename TupleOfVectorsOfTypesImpl<TypeListT>::Tuple;
 	}  // namespace metautil
 }  // namespace meta
 }  // namespace ecs
