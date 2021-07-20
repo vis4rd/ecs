@@ -36,9 +36,10 @@ class ComponentBuffer<meta::TypeList<Typepack...>>
 public:
 	ComponentBuffer() = default;
 
-	template <typename ComponentT>  // consider making this private!!! (user is unable to use wrapper)
+	template <typename ComponentT>
 	auto &getComponentBucket()  // WRAPS COMPONENT
 	{
+		// TBD : throw exception when given component does not exist in ComponentPool
 		return std::get<meta::IndexOf<ComponentWrapper<ComponentT>, m_cPool>>(m_cBuffer);
 	}
 
@@ -52,7 +53,16 @@ public:
 				return iter();
 			}
 		}
-		throw std::out_of_range("template <typename ComponentT> auto &getComponent(const uint64 entity_id): Given Entity ID doesn't exist.");
+		throw std::out_of_range("template <typename ComponentT> auto &getComponent(const uint64 entity_id): There are no components under given Entity ID.");
+	}
+
+	// Returns std::tuple of components matching entity_id
+	template <typename... ComponentListT>
+	auto getComponentsMatching(const uint64 &entity_id)
+	{
+		// TBD : Check whether such Entity ID was ever introduced into any component (maybe separate vector of ids?)
+		auto result = (std::make_tuple(getComponent<ComponentListT>(entity_id)...));
+		return result;
 	}
 
 	template <typename ComponentT>
