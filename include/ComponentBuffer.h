@@ -34,7 +34,6 @@ class ComponentBuffer<meta::TypeList<Typepack...>>
 {
 	using m_cPool = meta::ComponentPool<ComponentWrapper<Typepack> ...>;  // WRAPPED
 	using m_tPool = meta::TypeList<Typepack...>;  // NOT WRAPPED
-	using m_vcPool = meta::ComponentPool<std::vector<ComponentWrapper<Typepack>> ...>;  // WRAPPED, VECTOR
 public:
 	ComponentBuffer() = default;
 
