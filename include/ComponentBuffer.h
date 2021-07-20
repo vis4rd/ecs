@@ -88,7 +88,7 @@ public:
 	}
 
 	template <typename ComponentT>
-	auto &addComponent(const uint64 &entity_id) noexcept  // WRAPS COMPONENT, UNWRAPS ON RETURN
+	auto &addComponent(const uint64 &entity_id)  // WRAPS COMPONENT, UNWRAPS ON RETURN
 	{
 		return this->getComponentBucket<ComponentT>().emplace_back(
 			ComponentWrapper<ComponentT>(entity_id))();
