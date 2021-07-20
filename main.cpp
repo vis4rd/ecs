@@ -6,6 +6,11 @@
 
 int main()
 {
+
+    // Known issues:
+    // 1) invalid read of size 1 in meta::PrintImpl
+    // 2) write 62 in dealloc'd size 64 in util::type_name_to_string()
+
     ecs::Entity ent;
     ecs::Manager mgr;
 
@@ -13,7 +18,7 @@ int main()
     struct C1{};
     struct C2{};
     struct C3{};
-    
+
     using Types = ecs::meta::ComponentPool<float, C1, C2, C3, int, char>;
 
     std::cout << "SIZE = " << ecs::meta::TypeListSize<Types> << std::endl;
@@ -62,10 +67,17 @@ int main()
     auto tuple3 = CB2.getComponentsMatching<>(1);
     // std::cout << std::get<0>(tuple3) << std::endl;  // compilation error - tuple3 contains no types as none were provided for search
 
-    auto tuple4 = CB2.getComponentsMatching<long long>(1);
-    // std::cout << std::get<0>(tuple4) << std::endl;  // exception - there's no such component with given id
+    // auto tuple4 = CB2.getComponentsMatching<long long>(1);  // exception - there's no such component with given id
 
-    auto tuple5 = CB2.getComponentsMatching<float>(3);  // exception - there's no such component with given id
+    // auto tuple5 = CB2.getComponentsMatching<float>(3);  // exception - there's no such entity id introduced to the buffer
+
+    // auto vec1 = CB2.getComponentBucket<unsigned>();  // exception - there's no such component in ComponentPool
+
+    // auto &com1 = CB2.getComponent<unsigned>(1);  // exception - there's no such component in ComponentPool
+
+    // auto &com2 = CB2.getComponent<float>(3);  // exception - there's no such entity id introduced to the buffer
+
+    // auto &com3 = CB2.getComponent<double>(1);  // exception - there's no such component with given id
 
     return 0;
 }

@@ -98,6 +98,27 @@ namespace meta
 	// Works similar to the previous example with TypeAt
 
 	// ############################################################################################
+	// Implementation of DoesTypeExist
+	
+	template <uint16 Index, typename Target, typename TypeListT>
+	struct DoesTypeExistImpl;
+
+	template <uint16 Index, typename Target, typename FirstType, typename... RestOfTypes>
+	struct DoesTypeExistImpl<Index, Target, TypeList<FirstType, RestOfTypes...>>
+	{
+		static constexpr bool Exists = ((std::is_same<Target, FirstType>::value) ?
+			true : DoesTypeExistImpl<Index - 1, Target, TypeList<RestOfTypes...>>::Exists);
+	};
+
+	template <typename Target, typename FirstType, typename... RestOfTypes>
+	struct DoesTypeExistImpl<0, Target, TypeList<FirstType, RestOfTypes...>>
+	{
+		static constexpr bool Exists = ((std::is_same<Target, FirstType>::value) ?
+			true : false);
+	};
+	
+	template <typename Target, typename TypeListT>
+	constexpr bool DoesTypeExist = DoesTypeExistImpl<TypeListSize<TypeListT> - 1, Target, TypeListT>::Exists;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

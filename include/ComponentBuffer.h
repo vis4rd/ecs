@@ -16,7 +16,7 @@ class ComponentWrapper
 {
 public:
 	ComponentWrapper() = default;
-	ComponentWrapper(const uint64 &entity_id) : m_component(), m_entityID(entity_id) { }
+	explicit ComponentWrapper(const uint64 &entity_id) : m_component(), m_entityID(entity_id) { }
 	ComponentWrapper(const ComponentT &comp) : m_component(comp), m_entityID(0) { }  // TEMPORARY???
 	ComponentT &operator()() { return m_component; }
 	const uint64 &eID() const { return m_entityID; }
@@ -32,35 +32,57 @@ class ComponentBuffer;
 template <typename... Typepack>
 class ComponentBuffer<meta::TypeList<Typepack...>>
 {
-	using m_cPool = meta::ComponentPool<ComponentWrapper<Typepack> ...>;
+	using m_cPool = meta::ComponentPool<ComponentWrapper<Typepack> ...>;  // WRAPPED
+	using m_tPool = meta::TypeList<Typepack...>;  // NOT WRAPPED
 public:
 	ComponentBuffer() = default;
 
+	// Returns a vector of specified component types
 	template <typename ComponentT>
-	auto &getComponentBucket()  // WRAPS COMPONENT
+	std::vector<ComponentWrapper<ComponentT>> &getComponentBucket()
+	// WRAPS COMPONENT, DOES NOT UNWRAP ON RETURN
 	{
-		// TBD : throw exception when given component does not exist in ComponentPool
-		return std::get<meta::IndexOf<ComponentWrapper<ComponentT>, m_cPool>>(m_cBuffer);
+		if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
+		{
+			return std::get<meta::IndexOf<ComponentWrapper<ComponentT>, m_cPool>>(m_cBuffer);
+		}
+		else
+		{
+			throw std::invalid_argument(
+				"template <typename ComponentT> auto &getComponentBucket(): There's no such component in ComponentPool.");
+		}
 	}
 
 	template <typename ComponentT>
-	auto &getComponent(const uint64 entity_id)  // DOES NOT WRAP COMPONENT, UNWRAPS ON RETURN
+	ComponentT &getComponent(const uint64 entity_id)  // DOES NOT WRAP COMPONENT, UNWRAPS ON RETURN
 	{
-		for(auto &iter : this->getComponentBucket<ComponentT>())
+		if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
 		{
-			if(iter.eID() == entity_id)
+			for(auto &iter : this->getComponentBucket<ComponentT>())
 			{
-				return iter();
+				if(iter.eID() == entity_id)
+				{
+					return iter();
+				}
 			}
+			throw std::out_of_range(
+				"template <typename ComponentT> auto &getComponent(const uint64 entity_id): There is no such component under given Entity ID.");
 		}
-		throw std::out_of_range("template <typename ComponentT> auto &getComponent(const uint64 entity_id): There are no components under given Entity ID.");
+		else
+		{
+			throw std::invalid_argument(
+				"template <typename ComponentT> auto &getComponentBucket(): There's no such component in ComponentPool.");
+		}
 	}
 
 	// Returns std::tuple of components matching entity_id
+	// It does not check whether user passed any component types as template parameters.
+	// Exception will be thrown only when returned value will be tried to be accessed.
 	template <typename... ComponentListT>
 	auto getComponentsMatching(const uint64 &entity_id)
 	{
-		// TBD : Check whether such Entity ID was ever introduced into any component (maybe separate vector of ids?)
+		// TBD : Check whether such Entity ID was ever introduced into any component (maybe
+		//       separate vector of ids?)
 		auto result = (std::make_tuple(getComponent<ComponentListT>(entity_id)...));
 		return result;
 	}
@@ -68,7 +90,8 @@ public:
 	template <typename ComponentT>
 	auto &addComponent(const uint64 &entity_id) noexcept  // WRAPS COMPONENT, UNWRAPS ON RETURN
 	{
-		return this->getComponentBucket<ComponentT>().emplace_back(ComponentWrapper<ComponentT>(entity_id))();
+		return this->getComponentBucket<ComponentT>().emplace_back(
+			ComponentWrapper<ComponentT>(entity_id))();
 		// there's additional parenthesis at the end to unwrap the component from COmponentWrapper
 	}
 
