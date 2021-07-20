@@ -6,22 +6,42 @@ namespace ecs
 {
 namespace util
 {
-	void remove_substr(std::string& base_string, const std::string& key_string)
+	// Source: https://en.cppreference.com/w/cpp/string/basic_string/replace
+	std::size_t replace_all(std::string& inout, std::string_view what, std::string_view with)
 	{
-		auto key_length = key_string.length();
-
-		for(auto str_pos = base_string.find(key_string);
-			str_pos != std::string_view::npos;
-			str_pos = base_string.find(key_string))
+		std::size_t count{};
+		for(std::string::size_type pos{};
+			inout.npos != (pos = inout.find(what.data(), pos, what.length()));
+			pos += with.length(), ++count)
 		{
-			base_string.erase(str_pos, key_length);
+			inout.replace(pos, what.length(), with.data(), with.length());
+		}
+		return count;
+	}
+	 
+	std::size_t remove_all(std::string& inout, std::string_view what)
+	{
+		return replace_all(inout, what, "");
+	}
+	//
+	bool remove_string(std::string& inout, std::string_view what)
+	{
+		std::string::size_type pos{};
+		if(inout.npos != (pos = inout.find(what.data(), pos, what.length())))
+		{
+			inout.replace(pos, what.length(), "", 0);
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 
 	template <typename T>
 	constexpr auto type_name_to_string() noexcept
 	{
-		std::string_view name = "Error: unsupported compiler", prefix, suffix;
+		std::string name = "Error: unsupported compiler", prefix, suffix;
 	#ifdef __clang__
 		name = __PRETTY_FUNCTION__;
 		prefix = "[T = ";
@@ -35,18 +55,16 @@ namespace util
 		prefix = "type_name_to_string<";
 		suffix = ">(void) noexcept";
 	#endif
+		// name.substr(0, name.length() - suffix.length());
 
-		name.remove_suffix(suffix.size());
-
-		std::string temp{name};
-		util::remove_substr(temp, "std::");
-		name = temp;
-
-		name = name.substr(name.find(prefix) + prefix.length());
-		//name = name.substr(name.find_last_of(std::string_view{"::"}) + 1);
+		remove_string(name, prefix);
+		remove_string(name, "constexpr auto ecs::util::type_name_to_string() ");
+		remove_string(name, suffix);
+		remove_all(name, "std::");
+		remove_all(name, "__cxx11::");
 		if(name.back() == '&')
 		{
-			name.remove_suffix(1);
+			name.pop_back();
 		}
 		return name;
 	}

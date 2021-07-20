@@ -19,7 +19,7 @@ int main()
     struct C2{};
     struct C3{};
 
-    using Types = ecs::meta::ComponentPool<float, C1, C2, C3, int, char>;
+    using Types = ecs::meta::ComponentPool<float, C1, C2, C3, int, char, std::vector<std::string>>;
 
     std::cout << "SIZE = " << ecs::meta::TypeListSize<Types> << std::endl;
     std::cout << "INDEX = " << ecs::meta::IndexOf<C1, Types> << std::endl;
