@@ -55,8 +55,7 @@ int main()
     ref = 5;
     ref2 = 15.f;
     ref3 = 'c';
-    CB2.addComponent<long long>(ecs::uint64{2});
-    CB2.addComponent<double>(ecs::uint64{2});
+    CB2.addComponent<double>(ecs::uint64{2});  // = 0
     auto &hak = CB2.addComponent<int>(ecs::uint64{2});
     hak = 2;
     auto tuple = CB2.getComponentsMatching<int>(1);
@@ -78,6 +77,12 @@ int main()
     // auto &com2 = CB2.getComponent<float>(3);  // exception - there's no such entity id introduced to the buffer
 
     // auto &com3 = CB2.getComponent<double>(1);  // exception - there's no such component with given id
+
+    CB2.removeComponents(1);
+    // auto &com4 = CB2.getComponent<float>(1);  // exception - there's no sych component with given id
+    auto &com5 = CB2.getComponent<int>(2);
+    std::cout << com5 << std::endl;
+    CB2.removeComponents(2);
 
     return 0;
 }

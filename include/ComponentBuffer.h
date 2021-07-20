@@ -17,7 +17,7 @@ class ComponentWrapper
 public:
 	ComponentWrapper() = default;
 	explicit ComponentWrapper(const uint64 &entity_id) : m_component(), m_entityID(entity_id) { }
-	ComponentWrapper(const ComponentT &comp) : m_component(comp), m_entityID(0) { }  // TEMPORARY???
+	explicit ComponentWrapper(const ComponentT &comp) : m_component(comp), m_entityID(0) { }  // TEMPORARY???
 	ComponentT &operator()() { return m_component; }
 	const uint64 &eID() const { return m_entityID; }
 
@@ -34,6 +34,7 @@ class ComponentBuffer<meta::TypeList<Typepack...>>
 {
 	using m_cPool = meta::ComponentPool<ComponentWrapper<Typepack> ...>;  // WRAPPED
 	using m_tPool = meta::TypeList<Typepack...>;  // NOT WRAPPED
+	using m_vcPool = meta::ComponentPool<std::vector<ComponentWrapper<Typepack>> ...>;  // WRAPPED, VECTOR
 public:
 	ComponentBuffer() = default;
 
@@ -93,6 +94,33 @@ public:
 		return this->getComponentBucket<ComponentT>().emplace_back(
 			ComponentWrapper<ComponentT>(entity_id))();
 		// there's additional parenthesis at the end to unwrap the component from COmponentWrapper
+	}
+
+	// Removes all compononents with given entity_id (in all vectors)
+	void removeComponents(const uint64 entity_id) noexcept
+	{
+		auto func = [&entity_id](auto& vec)
+		{
+			for(auto it = vec.begin(); it < vec.end(); it++)
+			{
+				if(it->eID() == entity_id)
+				{
+					// std::cout << "removing (" << (*it)() <<") of eID = " << it->eID() << std::endl;
+					std::swap(*it, vec.back());
+					vec.pop_back();
+				}
+			}
+		};
+		// std::cout << util::type_name_to_string<decltype(func)>() << std::endl;
+		std::apply(
+			[&](auto& ...vec)
+			{
+				(func(vec), ...);
+			},
+			m_cBuffer
+		);
+		// TBD : implement meta::ForEachType<TypeList>(std::function<>)
+		//       Use std::apply above (?), should work (no temp_param, std::function as argument??)
 	}
 
 private:
