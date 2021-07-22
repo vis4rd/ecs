@@ -122,6 +122,7 @@ public:
 		//       Use std::apply above (?), should work (no temp_param, std::function as argument??)
 	}
 
+	// Remove signle component with given type and Entity ID. Both arguments must be valid.
 	template <typename ComponentT>
 	void removeComponent(const uint64 entity_id)
 	{
@@ -145,6 +146,24 @@ public:
 			throw std::invalid_argument(
 				"template <typename ComponentT> auto &getComponentBucket(): There's no such component in ComponentPool.");
 		}
+	}
+
+	const uint64 Size() const
+	{
+		uint64 result = uint64{0};
+		auto count = [&result](auto& vec)
+		{
+			result += vec.size();
+		};
+		// std::cout << util::type_name_to_string<decltype(func)>() << std::endl;
+		std::apply(
+			[&](auto& ...vec)
+			{
+				(count(vec), ...);
+			},
+			m_cBuffer
+		);
+		return result;
 	}
 
 private:
