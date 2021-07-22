@@ -131,13 +131,15 @@ namespace meta
 			static void Print()
 			{
 				using Type = TypeAt<Index, TypeListT>;
-				std::cout << ecs::util::type_name_to_string<Type>() << std::endl;
+				std::cout << "(" << ecs::util::type_name_to_string<Type>() << ") ";
 			}
 
 			template <size_t... Indices>
 			static void PrintAll(std::index_sequence<Indices...>)
 			{
+				std::cout << "< ";
 				(Print<Indices>(), ...);
+				std::cout << ">" << std::endl;
 			}
 
 			void operator()() const

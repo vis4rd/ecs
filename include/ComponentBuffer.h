@@ -18,8 +18,10 @@ public:
 	ComponentWrapper() = default;
 	explicit ComponentWrapper(const uint64 &entity_id) : m_component(), m_entityID(entity_id) { }
 	explicit ComponentWrapper(const ComponentT &comp) : m_component(comp), m_entityID(0) { }  // TEMPORARY???
+	const ComponentT &operator()() const { return m_component; }
 	ComponentT &operator()() { return m_component; }
 	const uint64 &eID() const { return m_entityID; }
+	void printType() const { std::cout << util::type_name_to_string<ComponentT>(); }
 
 private:
 	ComponentT m_component;
@@ -148,7 +150,7 @@ public:
 		}
 	}
 
-	const uint64 Size() const
+	const uint64 size() const
 	{
 		uint64 result = uint64{0};
 		auto count = [&result](auto& vec)
@@ -164,6 +166,40 @@ public:
 			m_cBuffer
 		);
 		return result;
+	}
+
+	void printAll() const
+	{
+		auto prt = [&](auto& vec)
+		{
+			if(!vec.empty())
+			{
+				vec[0].printType();
+				std::cout << " = { ";
+				for(auto &el : vec)
+				{
+					std::cout << el() << " ";
+				}
+				std::cout << "}" << std::endl;
+			}
+			else
+			{
+				vec[0].printType();
+				std::cout << " = { }" << std::endl;
+			}
+		};
+		
+		std::cout << "ComponentBuffer:" << std::endl
+			<< "types = ";
+		meta::metautil::Print<m_tPool>();
+		std::apply(
+			[&](auto& ...vec)
+			{
+				(prt(vec), ...);
+			},
+			m_cBuffer
+		);
+		std::cout << std::endl;
 	}
 
 private:

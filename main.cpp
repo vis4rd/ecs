@@ -54,7 +54,8 @@ int main()
     CB2.addComponent<long long>(ecs::uint64{2});
     auto &hak = CB2.addComponent<int>(ecs::uint64{2});
     hak = 2;
-    std::cout << "CB2 SIZE = " << CB2.Size() << std::endl;
+    std::cout << "CB2 SIZE = " << CB2.size() << std::endl;
+    CB2.printAll();
     auto tuple = CB2.getComponentsMatching<int>(1);
     auto tuple2 = CB2.getComponentsMatching<int>(2);
     std::cout << std::get<0>(tuple) << std::endl;
@@ -80,6 +81,6 @@ int main()
     CB2.removeComponents(2);
     CB2.removeComponent<char>(ecs::uint64{1});
     // entity 1 = int + float
-    std::cout << "CB2 SIZE = " << CB2.Size() << std::endl;
+    std::cout << "CB2 SIZE = " << CB2.size() << std::endl;
     return 0;
 }
