@@ -31,6 +31,9 @@ private:
 template <typename TypeListT>
 class ComponentBuffer;
 
+template <>
+class ComponentBuffer<meta::TypeList<>>;
+
 template <typename... Typepack>
 class ComponentBuffer<meta::TypeList<Typepack...>>
 {
@@ -95,6 +98,13 @@ public:
 		return this->getComponentBucket<ComponentT>().emplace_back(
 			ComponentWrapper<ComponentT>(entity_id))();
 		// there's additional parenthesis at the end to unwrap the component from ComponentWrapper
+	}
+
+	template <uint16 decimalIndex>
+	auto &addComponentByIndex(const uint64 entity_id)
+	{
+		return std::get<decimalIndex>(m_cBuffer).emplace_back(
+			ComponentWrapper<meta::TypeAt<decimalIndex, m_tPool>>(entity_id))();
 	}
 
 	// Removes all compononents with given entity_id (in all vectors)

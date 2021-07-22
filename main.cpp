@@ -7,7 +7,7 @@
 int main()
 {
     ecs::Entity ent;
-    ecs::Manager mgr;
+    // ecs::Manager mgr;
 
     struct C0{};
     struct C1{};
