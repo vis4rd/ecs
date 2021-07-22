@@ -79,7 +79,7 @@ public:
 	// It does not check whether user passed any component types as template parameters.
 	// Exception will be thrown only when returned value will be tried to be accessed.
 	template <typename... ComponentListT>
-	auto getComponentsMatching(const uint64 &entity_id)
+	auto getComponentsMatching(const uint64 entity_id)
 	{
 		// TBD : Check whether such Entity ID was ever introduced into any component (maybe
 		//       separate vector of ids?)
@@ -88,11 +88,11 @@ public:
 	}
 
 	template <typename ComponentT>
-	auto &addComponent(const uint64 &entity_id)  // WRAPS COMPONENT, UNWRAPS ON RETURN
+	auto &addComponent(const uint64 entity_id)  // WRAPS COMPONENT, UNWRAPS ON RETURN
 	{
 		return this->getComponentBucket<ComponentT>().emplace_back(
 			ComponentWrapper<ComponentT>(entity_id))();
-		// there's additional parenthesis at the end to unwrap the component from COmponentWrapper
+		// there's additional parenthesis at the end to unwrap the component from ComponentWrapper
 	}
 
 	// Removes all compononents with given entity_id (in all vectors)
@@ -120,6 +120,31 @@ public:
 		);
 		// TBD : implement meta::ForEachType<TypeList>(std::function<>)
 		//       Use std::apply above (?), should work (no temp_param, std::function as argument??)
+	}
+
+	template <typename ComponentT>
+	void removeComponent(const uint64 entity_id)
+	{
+		if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
+		{
+			auto &vec = this->getComponentBucket<ComponentT>();
+			for(auto it = vec.begin(); it < vec.end(); it++)
+			{
+				if(it->eID() == entity_id)
+				{
+					std::swap(*it, vec.back());
+					vec.pop_back();
+					return;
+				}
+			}
+			throw std::out_of_range(
+				"template <typename ComponentT> auto &getComponent(const uint64 entity_id): There is no such component under given Entity ID.");
+		}
+		else
+		{
+			throw std::invalid_argument(
+				"template <typename ComponentT> auto &getComponentBucket(): There's no such component in ComponentPool.");
+		}
 	}
 
 private:

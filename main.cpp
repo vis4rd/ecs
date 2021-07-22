@@ -6,11 +6,6 @@
 
 int main()
 {
-
-    // Known issues:
-    // 1) invalid read of size 1 in meta::PrintImpl
-    // 2) write 62 in dealloc'd size 64 in util::type_name_to_string()
-
     ecs::Entity ent;
     ecs::Manager mgr;
 
@@ -78,11 +73,10 @@ int main()
 
     // auto &com3 = CB2.getComponent<double>(1);  // exception - there's no such component with given id
 
-    CB2.removeComponents(1);
-    // auto &com4 = CB2.getComponent<float>(1);  // exception - there's no sych component with given id
     auto &com5 = CB2.getComponent<int>(2);
     std::cout << com5 << std::endl;
     CB2.removeComponents(2);
-
+    CB2.removeComponent<char>(ecs::uint64{1});
+    // entity 1 = int + float
     return 0;
 }
