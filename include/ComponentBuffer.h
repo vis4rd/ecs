@@ -168,6 +168,12 @@ public:
 		return result;
 	}
 
+	template <typename ComponentT>
+	const uint64 bucketSize() const
+	{
+		return this->getComponentBucket<ComponentT>().size();
+	}
+
 	void printAll() const
 	{
 		auto prt = [&](auto& vec)
