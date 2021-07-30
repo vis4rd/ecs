@@ -179,57 +179,6 @@ namespace meta
 
 	// ############################################################################################
 
-		// objective: std::array<std::vector<std::any>>>
-		/*template <typename TypeListT>
-		struct ArrayOfVectorsOfAnyImpl;
-
-		template <typename... Typepack>
-		struct ArrayOfVectorsOfAnyImpl<TypeList<Typepack...>>
-		{
-			using Array = typename std::array<std::vector<std::any>, sizeof... (Typepack)>;
-		};
-
-		template <typename TypeListT>
-		using ArrayOfVectorsOfAny = typename ArrayOfVectorsOfAnyImpl<TypeListT>::Array;
-
-		template <typename TypeListT>
-		using AVAImpl = typename ArrayOfVectorsOfAnyImpl<TypeListT>::Array;  // Helper typedef
-
-		template <typename... Typepack>
-		AVAImpl<TypeList<Typepack...>> AVAFiller(AVAImpl<TypeList<Typepack...>> &container)
-		{
-			auto size = container.size();
-			uint16 iter = 0;
-			auto &help = [&iter](AVAImpl<TypeList<Typepack...>> &cont)
-			{
-				cont[iter] = std::vector<TypeAt<iter, TypeList<Typepack...>>>{};
-			};
-			auto &man = [&iter, &size](AVAImpl<TypeList<Typepack...>> &cont)
-			{
-				for(; iter < size; iter++)
-				{
-					help(cont);
-				}
-			};
-			(man(container));
-			((
-			container[IndexOf<Typepack, TypeList<Typepack...>>][0].emplace<
-				TypeAt<IndexOf<Typepack, TypeList<Typepack...>>, TypeList<Typepack...>>
-				>(0)
-			) ...);
-			return container;
-			for(; iter < size; iter++)
-			{
-				container[iter] = std::vector<TypeAt<iter, TypeList<Typepack...>>>{};
-			}
-		}
-
-		template <typename TypeListT>
-		AVAImpl<TypeListT> FillArrayOfVectorsOfAny(AVAImpl<TypeListT> &container)
-		{
-			return AVAFiller<TypeListT>(container);
-		}*/
-		
 	}  // namespace metautil
 }  // namespace meta
 }  // namespace ecs

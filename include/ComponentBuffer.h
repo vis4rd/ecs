@@ -109,6 +109,7 @@ public:
 	}
 
 	void addComponentByIndex(const uint16 type_index, const uint64 entity_id)
+	// WRAPS COMPONENT, NO RETURN, NO "EXISTS" CHECK
 	{
 		// very ugly temporary workaround
 		switch(type_index)
