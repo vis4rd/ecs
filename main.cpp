@@ -41,22 +41,25 @@ int main()
         D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
         E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>;
 
-    ecs::Manager<CP> manager;
+    using CP2 = ecs::meta::ComponentPool<int, char, float, double, bool>;
+
+    ecs::Manager<CP2> manager;
     manager.initComponentBuffer();
     for(ecs::uint32 i = 0; i < ecs::uint32{1000}; i++)
     {
-        manager.addEntity(ecs::uint64{0x3FFFFFFF}, ecs::uint64{1});
+        manager.addEntity(ecs::uint64{0xFFFFFFFFFFFFFFFF}, ecs::uint64{1});
     }
+
+    std::cout << "BUFFER SIZE = " << manager.bufferSize() << std::endl;
+    manager.m_componentBuffer.printAll();
 
     for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)
     {
-        manager.deleteEntity(ecs::uint64(i));
+        manager.deleteEntity(i);
     }
 
-    std::cout << "SIZE = " << ecs::meta::TypeListSize<CP> << std::endl;
-    std::cout << "INDEX = " << ecs::meta::IndexOf<C1, CP> << std::endl;
-    // ecs::meta::metautil::Print<Types>();
-
+    std::cout << "SIZE = " << ecs::meta::TypeListSize<CP2> << std::endl;
+    std::cout << "INDEX(double) = " << ecs::meta::IndexOf<double, CP2> << std::endl;
     
     return 0;
 }

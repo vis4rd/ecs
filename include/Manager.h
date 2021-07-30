@@ -21,11 +21,12 @@ public:
 	void addEntity(const uint64 components, const uint64 flags);
 	void addComponent(const uint16 comp_dec_index, const uint64 entity_id);
 	void deleteEntity(const uint64 entity_id);
+	const uint16 bufferSize() const;
 
+	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 private:
 	std::vector<Entity> m_entityBuffer;  // stores all entities
 	std::vector<uint64> m_entityFlags;  // stores flags of all entities
-	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 
 	uint8 m_flagCount;  // number of existing entity flags
 	uint8 m_componentCount;  // number of components
@@ -66,21 +67,15 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 	{
 		m_entityCount++;
 		m_entityBuffer.emplace_back(Entity());
+		auto &id = m_entityBuffer.back().getID();
 
 		// parsing components
-		uint16 bitpos = 0;
-		for(uint64 c = uint64{1} << 63; c >= uint64{1 << 0}, bitpos < 64; c = (c >> 1), bitpos++)
+		uint16 index = uint16{0};
+		for(uint64 iter = (uint64{1} << 63); iter >= uint64{1}; iter >>= 1, index++)
 		{
-			if(bitpos < m_componentCount)
+			if((iter & components) == iter)  // this bit is 1, so component should be added
 			{
-				m_componentBuffer.template addComponentByIndex(bitpos, m_entityBuffer.back().getID());
-			}
-			else
-			{
-				std::cout << "[WARNING] Component bit position has exceeded " <<
-					"known component count (position: " << bitpos << ", component count: " <<
-					m_componentCount << ") - breaking operation..." << std::endl;
-				break;
+				m_componentBuffer.addComponentByIndex(index, id);
 			}
 		}
 
@@ -99,24 +94,24 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 template <typename TypeListT>
 void Manager<TypeListT>::addComponent(const uint16 comp_dec_index, const uint64 entity_id)
 {
-	if(m_componentBuffer.getComponentByIndex<comp_dec_index>(entity_id))
+	/*if(m_componentBuffer.getComponentByIndex<comp_dec_index>(entity_id))
 	{
 		std::cout << "[WARNING] Given component already exists under " << 
-			"passed Entity ID - " <<std::endl <<"ignoring void Manager<TypeListT>::addComponent" <<
+			"passed Entity ID - " << std::endl <<"ignoring void Manager<TypeListT>::addComponent" <<
 			"(const uint16 comp_dec_index, const uint64 entity_id)" << std::endl;
 		return;
 	}
 	else
-	{
-		m_componentBuffer.addComponentByIndex<comp_dec_index>(entity_id);
-	}
+	{*/
+		m_componentBuffer.template addComponentByIndex(comp_dec_index, entity_id);
+	/*}*/
 }
 
 template <typename TypeListT>
 void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 {
 	auto e = m_entityBuffer.begin();
-	for(; e < m_entityBuffer.end(); e++)
+	for(; e < m_entityBuffer.end(); e++)  // searching for position of entity in the buffer
 	{
 		if(e->getID() == entity_id)
 		{
@@ -129,6 +124,12 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	m_entityBuffer.pop_back();
 	std::swap(m_entityFlags[pos], m_entityFlags.back());
 	m_entityFlags.pop_back();
+}
+
+template <typename TypeListT>
+const uint16 Manager<TypeListT>::bufferSize() const
+{
+	return m_componentBuffer.size();
 }
 
 }  // namespace ecs
