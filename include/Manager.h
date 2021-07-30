@@ -94,17 +94,7 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 template <typename TypeListT>
 void Manager<TypeListT>::addComponent(const uint16 comp_dec_index, const uint64 entity_id)
 {
-	/*if(m_componentBuffer.getComponentByIndex<comp_dec_index>(entity_id))
-	{
-		std::cout << "[WARNING] Given component already exists under " << 
-			"passed Entity ID - " << std::endl <<"ignoring void Manager<TypeListT>::addComponent" <<
-			"(const uint16 comp_dec_index, const uint64 entity_id)" << std::endl;
-		return;
-	}
-	else
-	{*/
-		m_componentBuffer.template addComponentByIndex(comp_dec_index, entity_id);
-	/*}*/
+	m_componentBuffer.template addComponentByIndex(comp_dec_index, entity_id);
 }
 
 template <typename TypeListT>

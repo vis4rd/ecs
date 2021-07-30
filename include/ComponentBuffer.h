@@ -64,6 +64,22 @@ public:
 		}
 	}
 
+	// If such component already exists, return it. Otherwise, create a new one with given arguments.
+	template <typename ComponentT>
+	ComponentT &tryGetComponent(const uint64 entity_id) noexcept
+	// DOES NOT WRAP COMPONENT, UNWRAPS ON RETURN, CHECKS IF EXISTS
+	{
+		static_assert(meta::DoesTypeExist<ComponentT, m_tPool>, "template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id) noexcept: There is no such component in the pool.");
+		for(auto &iter : this->getComponentBucket<ComponentT>())
+		{
+			if(iter.eID() == entity_id)
+			{
+				return iter();
+			}
+		}
+		return this->addComponent<ComponentT>(entity_id);
+	}
+
 	// Returns std::tuple of components matching entity_id
 	// It does not check whether user passed any component types as template parameters.
 	// Exception will be thrown only when returned value will be tried to be accessed.
@@ -77,7 +93,8 @@ public:
 	}
 
 	template <typename ComponentT>
-	auto &addComponent(const uint64 entity_id)  // WRAPS COMPONENT, UNWRAPS ON RETURN
+	auto &addComponent(const uint64 entity_id) noexcept 
+	// WRAPS COMPONENT, UNWRAPS ON RETURN, NO "EXISTS" CHECK
 	{
 		return this->getComponentBucket<ComponentT>().emplace_back(
 			ComponentWrapper<ComponentT>(entity_id))();
@@ -85,10 +102,10 @@ public:
 	}
 
 	template <uint16 decimalIndex>
-	auto &addComponentByIndex(const uint64 entity_id)
+	auto &addComponentByIndex(const uint64 entity_id) noexcept
+	// WRAPS COMPONENT, UNWRAPS ON RETURN, NO "EXISTS" CHECK
 	{
-		return std::get<decimalIndex>(m_cBuffer).emplace_back(
-			ComponentWrapper<meta::TypeAt<decimalIndex, m_tPool>>(entity_id))();
+		return this->tryGetComponent<meta::TypeAt<decimalIndex, m_tPool>>(entity_id);
 	}
 
 	void addComponentByIndex(const uint16 type_index, const uint64 entity_id)
@@ -229,35 +246,8 @@ public:
 
 	void printAll() const
 	{
-		/*auto prt = [&](auto& vec)
-		{
-			if(!vec.empty())
-			{
-				vec[0].printType();
-				std::cout << " = { ";
-				for(auto &el : vec)
-				{
-					std::cout << el() << " ";
-				}
-				std::cout << "}" << std::endl;
-			}
-			else
-			{
-				vec[0].printType();
-				std::cout << " = { }" << std::endl;
-			}
-		};*/
-		
-		std::cout << "ComponentBuffer:" << std::endl
-			<< "types = ";
+		std::cout << "ComponentBuffer:" << std::endl << "types = ";
 		meta::metautil::Print<m_tPool>();
-		/*std::apply(
-			[&](auto& ...vec)
-			{
-				(prt(vec), ...);
-			},
-			m_cBuffer
-		);*/
 		std::cout << std::endl;
 		(this->printComponentVector<Typepack>(), ...);
 	}
