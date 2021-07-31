@@ -21,6 +21,7 @@ public:
 	void addEntity(const uint64 components, const uint64 flags);
 	void addComponent(const uint16 comp_dec_index, const uint64 entity_id);
 	void deleteEntity(const uint64 entity_id);
+	void deleteAllEntities();
 	const uint16 bufferSize() const;
 
 	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
@@ -28,8 +29,8 @@ private:
 	std::vector<Entity> m_entityBuffer;  // stores all entities
 	std::vector<uint64> m_entityFlags;  // stores flags of all entities
 
-	uint8 m_flagCount;  // number of existing entity flags
-	uint8 m_componentCount;  // number of components
+	uint8 m_flagCount;  // number of existing entity flags (types)
+	uint8 m_componentCount;  // number of components in the TypeList
 	uint64 m_maxEntityCount;  // max number of entities
 	uint64 m_entityCount;  // number of currently existing entities
 	// uint64 m_disposedEntityCount;  // number of destroyed entities in m_disposedEntityPool
@@ -114,6 +115,15 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	m_entityBuffer.pop_back();
 	std::swap(m_entityFlags[pos], m_entityFlags.back());
 	m_entityFlags.pop_back();
+}
+
+template <typename TypeListT>
+void Manager<TypeListT>::deleteAllEntities()
+{
+	m_componentBuffer.removeAllComponents();
+	m_entityBuffer.clear();
+	m_entityFlags.clear();
+	m_entityCount = uint64{0};
 }
 
 template <typename TypeListT>

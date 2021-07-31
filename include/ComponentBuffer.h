@@ -229,6 +229,14 @@ public:
 		}
 	}
 
+	void removeAllComponents()
+	{
+		for(auto &c : m_cBuffer)
+		{
+			c->clear();
+		}
+	}
+
 	const uint64 size() const
 	{
 		uint64 result = uint64{0};
