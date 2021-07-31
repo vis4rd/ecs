@@ -23,11 +23,12 @@ public:
 	void deleteEntity(const uint64 entity_id);
 	void deleteAllEntities();
 	const uint16 bufferSize() const;
-	const void printComponentBuffer() const;
+	void printComponentBuffer() const;
 
 private:
 	std::vector<Entity> m_entityBuffer;  // stores all entities
 	std::vector<uint64> m_entityFlags;  // stores flags of all entities
+	std::vector<uint64> m_entityComponents;  // stores bitsets of components of all entities
 	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 
 	uint8 m_flagCount;  // number of existing entity flags (types)
@@ -53,6 +54,10 @@ m_entityCount(uint64{0})
 	if(m_entityFlags.capacity() < m_maxEntityCount)
 	{
 		m_entityFlags.reserve(m_maxEntityCount);
+	}
+	if(m_entityComponents.capacity() < m_maxEntityCount)
+	{
+		m_entityComponents.reserve(m_maxEntityCount);
 	}
 }
 
@@ -81,8 +86,8 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 			}
 		}
 
-		// adding flags
-		m_entityFlags.push_back(flags);
+		m_entityFlags.push_back(flags);  // adding flags
+		m_entityComponents.emplace_back(components);  // adding components
 
 		// TBD : use disposed entities instead of assigning new ones everytime
 	}
@@ -96,7 +101,28 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 template <typename TypeListT>
 void Manager<TypeListT>::addComponent(const uint16 comp_dec_index, const uint64 entity_id)
 {
-	m_componentBuffer.template addComponentByIndex(comp_dec_index, entity_id);
+	m_componentBuffer.addComponentByIndex(comp_dec_index, entity_id);
+	// we have to find the right entity's index in m_entityBuffer
+	// and flip the bit of appended component
+	bool found = false;
+	uint64 i = uint64{0};
+	for(; i < m_entityCount; i++)
+	{
+		if(m_entityBuffer[i].getID() == entity_id)  // if the correct id is found
+		{
+			found = true;
+			break;
+		}
+	}
+	// converting decimal component index to bit position
+	// dec(0) == (1 << 63)
+	// dec(1) == (1 << 62)
+	// dec(63) == (1 << 0)
+	// dec(i) == (1 << (63 - i))
+	if(found)
+	{
+		m_entityComponents[i] |= uint64{1} << (63 - i);
+	}
 }
 
 template <typename TypeListT>
@@ -116,6 +142,8 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	m_entityBuffer.pop_back();
 	std::swap(m_entityFlags[pos], m_entityFlags.back());
 	m_entityFlags.pop_back();
+	std::swap(m_entityComponents[pos], m_entityComponents.back());
+	m_entityComponents.pop_back();
 }
 
 template <typename TypeListT>
@@ -124,6 +152,7 @@ void Manager<TypeListT>::deleteAllEntities()
 	m_componentBuffer.removeAllComponents();
 	m_entityBuffer.clear();
 	m_entityFlags.clear();
+	m_entityComponents.clear();
 	m_entityCount = uint64{0};
 }
 
@@ -134,7 +163,7 @@ const uint16 Manager<TypeListT>::bufferSize() const
 }
 
 template <typename TypeListT>
-const void Manager<TypeListT>::printComponentBuffer() const
+void Manager<TypeListT>::printComponentBuffer() const
 {
 	std::cout << "BUFFER SIZE = " << this->bufferSize() << std::endl;
 	m_componentBuffer.printAll();
