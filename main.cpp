@@ -50,13 +50,14 @@ int main()
         manager.addEntity(ecs::uint64{0xFFFFFFFFFFFFFFFF}, ecs::uint64{1});
     }
 
-    std::cout << "BUFFER SIZE = " << manager.bufferSize() << std::endl;
-    manager.m_componentBuffer.printAll();
+    // manager.printComponentBuffer();
 
-    for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)
+    /*for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)
     {
         manager.deleteEntity(i);
-    }
+    }*/
+
+    manager.deleteAllEntities();
 
     std::cout << "SIZE = " << ecs::meta::TypeListSize<CP2> << std::endl;
     std::cout << "INDEX(double) = " << ecs::meta::IndexOf<double, CP2> << std::endl;

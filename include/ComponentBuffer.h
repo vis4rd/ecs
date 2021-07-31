@@ -233,7 +233,7 @@ public:
 	{
 		for(auto &c : m_cBuffer)
 		{
-			c->clear();
+			c.clear();
 		}
 	}
 

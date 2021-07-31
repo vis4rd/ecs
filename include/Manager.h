@@ -23,11 +23,12 @@ public:
 	void deleteEntity(const uint64 entity_id);
 	void deleteAllEntities();
 	const uint16 bufferSize() const;
+	const void printComponentBuffer() const;
 
-	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 private:
 	std::vector<Entity> m_entityBuffer;  // stores all entities
 	std::vector<uint64> m_entityFlags;  // stores flags of all entities
+	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 
 	uint8 m_flagCount;  // number of existing entity flags (types)
 	uint8 m_componentCount;  // number of components in the TypeList
@@ -130,6 +131,13 @@ template <typename TypeListT>
 const uint16 Manager<TypeListT>::bufferSize() const
 {
 	return m_componentBuffer.size();
+}
+
+template <typename TypeListT>
+const void Manager<TypeListT>::printComponentBuffer() const
+{
+	std::cout << "BUFFER SIZE = " << this->bufferSize() << std::endl;
+	m_componentBuffer.printAll();
 }
 
 }  // namespace ecs
