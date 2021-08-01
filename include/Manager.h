@@ -23,6 +23,8 @@ public:
 	void deleteEntity(const uint64 entity_id);
 	void deleteAllEntities();
 	const uint16 bufferSize() const;
+	const Entity &getEntity(const uint64 entity_id) const;
+	const std::any &getComponent(const uint16 comp_dec_index, const uint64 entity_id) const;
 	void printComponentBuffer() const;
 
 private:
@@ -160,6 +162,25 @@ template <typename TypeListT>
 const uint16 Manager<TypeListT>::bufferSize() const
 {
 	return m_componentBuffer.size();
+}
+
+template <typename TypeListT>
+const Entity &Manager<TypeListT>::getEntity(const uint64 entity_id) const
+{
+	for(auto &e : m_entityBuffer)
+	{
+		if(e.getID() == entity_id)
+		{
+			return e;
+		}
+	}
+	throw std::invalid_argument("There's no such entity with given ID.");
+}
+
+template <typename TypeListT>
+const std::any &Manager<TypeListT>::getComponent(const uint16 comp_dec_index, const uint64 entity_id) const
+{
+	return m_componentBuffer.getComponentByIndex(comp_dec_index, entity_id);
 }
 
 template <typename TypeListT>

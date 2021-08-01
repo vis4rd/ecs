@@ -50,6 +50,8 @@ int main()
         manager.addEntity(ecs::uint64{0xFFFFFFFFFFFFFFFF}, ecs::uint64{1});
     }
 
+    manager.getEntity(555);
+    manager.getComponent(4, 555);
     // manager.printComponentBuffer();
 
     /*for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)

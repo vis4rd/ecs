@@ -64,6 +64,83 @@ public:
 		}
 	}
 
+	const std::any &getComponentByIndex(const uint16 type_index, const uint64 entity_id) const
+	{
+		switch(type_index)
+		{
+			case uint16{0}: { if constexpr(0 < sizeof...(Typepack)){ return m_cBuffer[type_index][0]; } break; }
+			case uint16{1}: { if constexpr(1 < sizeof...(Typepack)){ return m_cBuffer[type_index][1]; } break; }
+			case uint16{2}: { if constexpr(2 < sizeof...(Typepack)){ return m_cBuffer[type_index][2]; } break; }
+			case uint16{3}: { if constexpr(3 < sizeof...(Typepack)){ return m_cBuffer[type_index][3]; } break; }
+			case uint16{4}: { if constexpr(4 < sizeof...(Typepack)){ return m_cBuffer[type_index][4]; } break; }
+			case uint16{5}: { if constexpr(5 < sizeof...(Typepack)){ return m_cBuffer[type_index][5]; } break; }
+			case uint16{6}: { if constexpr(6 < sizeof...(Typepack)){ return m_cBuffer[type_index][6]; } break; }
+			case uint16{7}: { if constexpr(7 < sizeof...(Typepack)){ return m_cBuffer[type_index][7]; } break; }
+			case uint16{8}: { if constexpr(8 < sizeof...(Typepack)){ return m_cBuffer[type_index][8]; } break; }
+			case uint16{9}: { if constexpr(9 < sizeof...(Typepack)){ return m_cBuffer[type_index][9]; } break; }
+			case uint16{10}: { if constexpr(10 < sizeof...(Typepack)){ return m_cBuffer[type_index][10]; } break; }
+			case uint16{11}: { if constexpr(11 < sizeof...(Typepack)){ return m_cBuffer[type_index][11]; } break; }
+			case uint16{12}: { if constexpr(12 < sizeof...(Typepack)){ return m_cBuffer[type_index][12]; } break; }
+			case uint16{13}: { if constexpr(13 < sizeof...(Typepack)){ return m_cBuffer[type_index][13]; } break; }
+			case uint16{14}: { if constexpr(14 < sizeof...(Typepack)){ return m_cBuffer[type_index][14]; } break; }
+			case uint16{15}: { if constexpr(15 < sizeof...(Typepack)){ return m_cBuffer[type_index][15]; } break; }
+			case uint16{16}: { if constexpr(16 < sizeof...(Typepack)){ return m_cBuffer[type_index][16]; } break; }
+			case uint16{17}: { if constexpr(17 < sizeof...(Typepack)){ return m_cBuffer[type_index][17]; } break; }
+			case uint16{18}: { if constexpr(18 < sizeof...(Typepack)){ return m_cBuffer[type_index][18]; } break; }
+			case uint16{19}: { if constexpr(19 < sizeof...(Typepack)){ return m_cBuffer[type_index][19]; } break; }
+			case uint16{20}: { if constexpr(20 < sizeof...(Typepack)){ return m_cBuffer[type_index][20]; } break; }
+			case uint16{21}: { if constexpr(21 < sizeof...(Typepack)){ return m_cBuffer[type_index][21]; } break; }
+			case uint16{22}: { if constexpr(22 < sizeof...(Typepack)){ return m_cBuffer[type_index][22]; } break; }
+			case uint16{23}: { if constexpr(23 < sizeof...(Typepack)){ return m_cBuffer[type_index][23]; } break; }
+			case uint16{24}: { if constexpr(24 < sizeof...(Typepack)){ return m_cBuffer[type_index][24]; } break; }
+			case uint16{25}: { if constexpr(25 < sizeof...(Typepack)){ return m_cBuffer[type_index][25]; } break; }
+			case uint16{26}: { if constexpr(26 < sizeof...(Typepack)){ return m_cBuffer[type_index][26]; } break; }
+			case uint16{27}: { if constexpr(27 < sizeof...(Typepack)){ return m_cBuffer[type_index][27]; } break; }
+			case uint16{28}: { if constexpr(28 < sizeof...(Typepack)){ return m_cBuffer[type_index][28]; } break; }
+			case uint16{29}: { if constexpr(29 < sizeof...(Typepack)){ return m_cBuffer[type_index][29]; } break; }
+			case uint16{30}: { if constexpr(30 < sizeof...(Typepack)){ return m_cBuffer[type_index][30]; } break; }
+			case uint16{31}: { if constexpr(31 < sizeof...(Typepack)){ return m_cBuffer[type_index][31]; } break; }
+			case uint16{32}: { if constexpr(32 < sizeof...(Typepack)){ return m_cBuffer[type_index][32]; } break; }
+			case uint16{33}: { if constexpr(33 < sizeof...(Typepack)){ return m_cBuffer[type_index][33]; } break; }
+			case uint16{34}: { if constexpr(34 < sizeof...(Typepack)){ return m_cBuffer[type_index][34]; } break; }
+			case uint16{35}: { if constexpr(35 < sizeof...(Typepack)){ return m_cBuffer[type_index][35]; } break; }
+			case uint16{36}: { if constexpr(36 < sizeof...(Typepack)){ return m_cBuffer[type_index][36]; } break; }
+			case uint16{37}: { if constexpr(37 < sizeof...(Typepack)){ return m_cBuffer[type_index][37]; } break; }
+			case uint16{38}: { if constexpr(38 < sizeof...(Typepack)){ return m_cBuffer[type_index][38]; } break; }
+			case uint16{39}: { if constexpr(39 < sizeof...(Typepack)){ return m_cBuffer[type_index][39]; } break; }
+			case uint16{40}: { if constexpr(40 < sizeof...(Typepack)){ return m_cBuffer[type_index][40]; } break; }
+			case uint16{41}: { if constexpr(41 < sizeof...(Typepack)){ return m_cBuffer[type_index][41]; } break; }
+			case uint16{42}: { if constexpr(42 < sizeof...(Typepack)){ return m_cBuffer[type_index][42]; } break; }
+			case uint16{43}: { if constexpr(43 < sizeof...(Typepack)){ return m_cBuffer[type_index][43]; } break; }
+			case uint16{44}: { if constexpr(44 < sizeof...(Typepack)){ return m_cBuffer[type_index][44]; } break; }
+			case uint16{45}: { if constexpr(45 < sizeof...(Typepack)){ return m_cBuffer[type_index][45]; } break; }
+			case uint16{46}: { if constexpr(46 < sizeof...(Typepack)){ return m_cBuffer[type_index][46]; } break; }
+			case uint16{47}: { if constexpr(47 < sizeof...(Typepack)){ return m_cBuffer[type_index][47]; } break; }
+			case uint16{48}: { if constexpr(48 < sizeof...(Typepack)){ return m_cBuffer[type_index][48]; } break; }
+			case uint16{49}: { if constexpr(49 < sizeof...(Typepack)){ return m_cBuffer[type_index][49]; } break; }
+			case uint16{50}: { if constexpr(50 < sizeof...(Typepack)){ return m_cBuffer[type_index][50]; } break; }
+			case uint16{51}: { if constexpr(51 < sizeof...(Typepack)){ return m_cBuffer[type_index][51]; } break; }
+			case uint16{52}: { if constexpr(52 < sizeof...(Typepack)){ return m_cBuffer[type_index][52]; } break; }
+			case uint16{53}: { if constexpr(53 < sizeof...(Typepack)){ return m_cBuffer[type_index][53]; } break; }
+			case uint16{54}: { if constexpr(54 < sizeof...(Typepack)){ return m_cBuffer[type_index][54]; } break; }
+			case uint16{55}: { if constexpr(55 < sizeof...(Typepack)){ return m_cBuffer[type_index][55]; } break; }
+			case uint16{56}: { if constexpr(56 < sizeof...(Typepack)){ return m_cBuffer[type_index][56]; } break; }
+			case uint16{57}: { if constexpr(57 < sizeof...(Typepack)){ return m_cBuffer[type_index][57]; } break; }
+			case uint16{58}: { if constexpr(58 < sizeof...(Typepack)){ return m_cBuffer[type_index][58]; } break; }
+			case uint16{59}: { if constexpr(59 < sizeof...(Typepack)){ return m_cBuffer[type_index][59]; } break; }
+			case uint16{60}: { if constexpr(60 < sizeof...(Typepack)){ return m_cBuffer[type_index][60]; } break; }
+			case uint16{61}: { if constexpr(61 < sizeof...(Typepack)){ return m_cBuffer[type_index][61]; } break; }
+			case uint16{62}: { if constexpr(62 < sizeof...(Typepack)){ return m_cBuffer[type_index][62]; } break; }
+			case uint16{63}: { if constexpr(63 < sizeof...(Typepack)){ return m_cBuffer[type_index][63]; } break; }
+			default:
+			{
+				throw std::out_of_range(
+				"auto &addComponentByIndex(const uint16 type_index, const uint64 entity_id): Given index is out of range (0-63).");
+				break;
+			}
+		}
+	}
+
 	// If such component already exists, return it. Otherwise, create a new one with given arguments.
 	template <typename ComponentT>
 	ComponentT &tryGetComponent(const uint64 entity_id) noexcept
