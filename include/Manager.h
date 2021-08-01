@@ -18,17 +18,24 @@ public:
 	// uint64 contains bitset of components.
 	// Manager assumes that the user knows the order of components in the pool.
 	// Most-important bit represents the first component in the pool.
+	template <uint16 ComponentCount = uint16{64}>
 	void addEntity(const uint64 components, const uint64 flags);
-	void addComponent(const uint16 comp_dec_index, const uint64 entity_id);
+	template <uint16 TypeIndex>
+	void addComponent(const uint64 entity_id);
 	void deleteEntity(const uint64 entity_id);
+
+private:
+	template <uint16 Index>
+	void addEntityComponents(const uint64 components, const uint64 &entity_id);
 
 private:
 	std::vector<Entity> m_entityBuffer;  // stores all entities
 	std::vector<uint64> m_entityFlags;  // stores flags of all entities
+	std::vector<uint64> m_entityComponents;  // stores component bitsets of all entities
 	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 
-	uint8 m_flagCount;  // number of existing entity flags
-	uint8 m_componentCount;  // number of components
+	uint16 m_flagCount;  // number of existing entity flags
+	static constexpr const uint16 m_componentCount = meta::TypeListSize<TypeListT>;  // number of components
 	uint64 m_maxEntityCount;  // max number of entities
 	uint64 m_entityCount;  // number of currently existing entities
 	// uint64 m_disposedEntityCount;  // number of destroyed entities in m_disposedEntityPool
@@ -37,8 +44,7 @@ private:
 template <typename TypeListT>
 Manager<TypeListT>::Manager(const uint64 max_entity_count)
 :
-m_flagCount(uint8{0}),
-m_componentCount(meta::TypeListSize<TypeListT>),
+m_flagCount(uint16{0}),
 m_maxEntityCount(max_entity_count),
 m_entityCount(uint64{0})
 // m_disposedEntityCount(uint64{0})
@@ -54,12 +60,7 @@ m_entityCount(uint64{0})
 }
 
 template <typename TypeListT>
-void Manager<TypeListT>::initComponentBuffer()
-{
-	m_componentBuffer = ComponentBuffer<TypeListT>{};
-}
-
-template <typename TypeListT>
+template <uint16 ComponentCount>
 void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 {
 	if(m_entityCount < m_maxEntityCount)
@@ -68,24 +69,14 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 		m_entityBuffer.emplace_back(Entity());
 
 		// parsing components
-		uint16 bitpos = 0;
-		for(uint64 c = uint64{1} << 63; c >= uint64{1 << 0}, bitpos < 64; c = (c >> 1), bitpos++)
-		{
-			if(bitpos < m_componentCount)
-			{
-				m_componentBuffer.template addComponentByIndex(bitpos, m_entityBuffer.back().getID());
-			}
-			else
-			{
-				std::cout << "[WARNING] Component bit position has exceeded " <<
-					"known component count (position: " << bitpos << ", component count: " <<
-					m_componentCount << ") - breaking operation..." << std::endl;
-				break;
-			}
-		}
+		const uint64 &id = m_entityBuffer.back().getID();
+		this->addEntityComponents<ComponentCount-1>(components, id);
 
 		// adding flags
 		m_entityFlags.push_back(flags);
+
+		// adding components
+		m_entityComponents.push_back(components);
 
 		// TBD : use disposed entities instead of assigning new ones everytime
 	}
@@ -97,18 +88,19 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 }
 
 template <typename TypeListT>
-void Manager<TypeListT>::addComponent(const uint16 comp_dec_index, const uint64 entity_id)
+template <uint16 TypeIndex>
+void Manager<TypeListT>::addComponent(const uint64 entity_id)
 {
-	if(m_componentBuffer.getComponentByIndex<comp_dec_index>(entity_id))
+	if(m_componentBuffer.getComponentByIndex<TypeIndex>(entity_id))
 	{
 		std::cout << "[WARNING] Given component already exists under " << 
 			"passed Entity ID - " <<std::endl <<"ignoring void Manager<TypeListT>::addComponent" <<
-			"(const uint16 comp_dec_index, const uint64 entity_id)" << std::endl;
+			"(const uint64 entity_id)" << std::endl;
 		return;
 	}
 	else
 	{
-		m_componentBuffer.addComponentByIndex<comp_dec_index>(entity_id);
+		m_componentBuffer.addComponentByIndex<TypeIndex>(entity_id);
 	}
 }
 
@@ -129,6 +121,30 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	m_entityBuffer.pop_back();
 	std::swap(m_entityFlags[pos], m_entityFlags.back());
 	m_entityFlags.pop_back();
+}
+
+// PRIVATE
+template <typename TypeListT>
+template <uint16 Index>
+void Manager<TypeListT>::addEntityComponents(const uint64 components, const uint64 &entity_id)
+{
+	if constexpr(Index >= m_componentCount)
+	{
+		std::cout << "[WARNING] Component bit position has exceeded " <<
+			"known component count (position: " << Index << ", component count: " <<
+			m_componentCount << ") - breaking operation..." << std::endl;
+	}
+	else
+	{
+		if(((uint64{1} << Index) & components) == (uint64{1} << Index))  // if bit at position Index is equal to 1
+		{
+			m_componentBuffer.template addComponentByIndex<Index>(entity_id);
+		}
+	}
+	if constexpr(Index > uint16{0})
+	{
+		this->addEntityComponents<Index - 1>(components, entity_id);
+	}
 }
 
 }  // namespace ecs

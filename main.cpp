@@ -42,10 +42,9 @@ int main()
         E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>;
 
     ecs::Manager<CP> manager;
-    manager.initComponentBuffer();
     for(ecs::uint32 i = 0; i < ecs::uint32{1000}; i++)
     {
-        manager.addEntity(ecs::uint64{0x3FFFFFFF}, ecs::uint64{1});
+        manager.addEntity<30>(ecs::uint64{0x3FFFFFFF}, ecs::uint64{1});
     }
 
     for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)

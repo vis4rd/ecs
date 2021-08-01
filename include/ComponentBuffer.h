@@ -31,9 +31,6 @@ private:
 template <typename TypeListT>
 class ComponentBuffer;
 
-template <>
-class ComponentBuffer<meta::TypeList<>>;
-
 template <typename... Typepack>
 class ComponentBuffer<meta::TypeList<Typepack...>>
 {
