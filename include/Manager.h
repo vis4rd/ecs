@@ -28,6 +28,7 @@ public:
 	std::any &getComponent(const uint16 comp_dec_index, const uint64 entity_id);
 	std::vector<std::any> &getComponentBucket(const uint16 comp_dec_index);
 	void printComponentBuffer() const;
+	const bool checkComponent(const uint16 comp_dec_index, const uint64 entity_id) const;
 
 private:
 	std::vector<Entity> m_entityBuffer;  // stores all entities
@@ -202,6 +203,27 @@ void Manager<TypeListT>::printComponentBuffer() const
 {
 	std::cout << "BUFFER SIZE = " << this->bufferSize() << std::endl;
 	m_componentBuffer.printAll();
+}
+
+template <typename TypeListT>
+const bool Manager<TypeListT>::checkComponent(const uint16 comp_dec_index, const uint64 entity_id) const
+{
+	if(comp_dec_index > m_componentBuffer.poolSize())
+	{
+		return false;
+	}
+	else
+	{
+		try
+		{
+			this->getComponent(comp_dec_index, entity_id);
+		}
+		catch(std::exception &e)
+		{
+			return false;
+		}
+		return true;
+	}
 }
 
 }  // namespace ecs

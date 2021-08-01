@@ -4,6 +4,19 @@
 #include "include/Manager.h"
 #include "include/ComponentBuffer.h"
 
+template <typename T>
+std::vector<T> vector_any_cast(std::vector<std::any> &target)
+{
+    std::vector<T> result;
+    auto size = target.size();
+    for(unsigned i = 0; i < size; i++)
+    {
+        result.emplace_back(std::any_cast<T&>(target[i]));
+    }
+    return result;
+}   
+
+
 int main()
 {
     struct C0{};
@@ -58,6 +71,7 @@ int main()
     std::cout << manager.bufferSize() << std::endl;
     auto &com = manager.getComponent(2, 998);
     auto &vec = manager.getComponentBucket(1);
+    auto vec2 = vector_any_cast<ecs::ComponentWrapper<char>>(vec);
     // manager.printComponentBuffer();
 
     /*for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)
@@ -69,6 +83,14 @@ int main()
 
     std::cout << "SIZE = " << ecs::meta::TypeListSize<CP2> << std::endl;
     std::cout << "INDEX(double) = " << ecs::meta::IndexOf<double, CP2> << std::endl;
+
+    std::cout << std::endl;
+    ecs::ComponentBuffer<CP2> CB;
+    int &test1 = CB.addComponent<int>(0);
+    std::cout << "buffer size = " << CB.size() << std::endl;
+    std::cout << "bucket size = " << CB.bucketSize<int>() << std::endl;
+    test1 = 5;
+    std::cout << "test1 = " << std::any_cast<ecs::ComponentWrapper<int>>(CB.getComponentByIndex(0, 0))() << std::endl;
     
     return 0;
 }
