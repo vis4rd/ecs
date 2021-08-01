@@ -25,6 +25,8 @@ public:
 	const uint16 bufferSize() const;
 	const Entity &getEntity(const uint64 entity_id) const;
 	const std::any &getComponent(const uint16 comp_dec_index, const uint64 entity_id) const;
+	std::any &getComponent(const uint16 comp_dec_index, const uint64 entity_id);
+	std::vector<std::any> &getComponentBucket(const uint16 comp_dec_index);
 	void printComponentBuffer() const;
 
 private:
@@ -181,6 +183,18 @@ template <typename TypeListT>
 const std::any &Manager<TypeListT>::getComponent(const uint16 comp_dec_index, const uint64 entity_id) const
 {
 	return m_componentBuffer.getComponentByIndex(comp_dec_index, entity_id);
+}
+
+template <typename TypeListT>
+std::any &Manager<TypeListT>::getComponent(const uint16 comp_dec_index, const uint64 entity_id)
+{
+	return m_componentBuffer.getComponentByIndex(comp_dec_index, entity_id);
+}
+
+template <typename TypeListT>
+std::vector<std::any> &Manager<TypeListT>::getComponentBucket(const uint16 comp_dec_index)
+{
+	return m_componentBuffer.getComponentBucket(comp_dec_index);
 }
 
 template <typename TypeListT>

@@ -47,11 +47,17 @@ int main()
     manager.initComponentBuffer();
     for(ecs::uint32 i = 0; i < ecs::uint32{1000}; i++)
     {
-        manager.addEntity(ecs::uint64{0xFFFFFFFFFFFFFFFF}, ecs::uint64{1});
+        manager.addEntity(ecs::uint64{0xFFFFFFFFFFFFFFFE}, ecs::uint64{1});
     }
 
     manager.getEntity(555);
     manager.getComponent(4, 555);
+    manager.addComponent(63, 999);
+    manager.getComponent(63, 999);
+    manager.deleteEntity(999);
+    std::cout << manager.bufferSize() << std::endl;
+    auto &com = manager.getComponent(2, 998);
+    auto &vec = manager.getComponentBucket(1);
     // manager.printComponentBuffer();
 
     /*for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)
