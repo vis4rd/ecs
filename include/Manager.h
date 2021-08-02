@@ -18,10 +18,13 @@ public:
 	// uint64 contains bitset of components.
 	// Manager assumes that the user knows the order of components in the pool.
 	// Most-important bit represents the first component in the pool.
-	template <uint16 ComponentCount = uint16{64}>
-	void addEntity(const uint64 components, const uint64 flags);
-	template <uint16 TypeIndex>
-	void addComponent(const uint64 entity_id);
+	template <uint16 ComponentCount = uint16{64}> void addEntity(const uint64 components, const uint64 flags);
+	template <uint16 TypeIndex> void addComponent(const uint64 entity_id);
+	template <uint16 TypeIndex> meta::TypeAt<TypeIndex, TypeListT> &getComponent(const uint64 entity_id);
+	template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id);
+	template <uint16 TypeIndex> std::vector<ComponentWrapper<meta::TypeAt<TypeIndex, TypeListT>>> &getComponentBucket();
+	template <typename ComponentT> std::vector<ComponentWrapper<ComponentT>> &getComponentBucket();
+
 	void deleteEntity(const uint64 entity_id);
 
 private:
@@ -100,8 +103,48 @@ void Manager<TypeListT>::addComponent(const uint64 entity_id)
 	}
 	else
 	{
+		// adding component to the buffer
 		m_componentBuffer.addComponentByIndex<TypeIndex>(entity_id);
+
+		// flipping the bit to 1
+		uint16 i = uint16{0};
+		for(; i < m_entityCount; i++)
+		{
+			if(m_entityBuffer[i].getID() == entity_id)
+			{
+				break;
+			}
+		}
+		m_entityComponents[i] |= (uint64{1} << TypeIndex);
 	}
+}
+
+template <typename TypeListT>
+template <uint16 TypeIndex>
+meta::TypeAt<TypeIndex, TypeListT> &Manager<TypeListT>::getComponent(const uint64 entity_id)
+{
+	return this->getComponent<meta::TypeAt<TypeIndex, TypeListT>>(entity_id);
+}
+
+template <typename TypeListT>
+template <typename ComponentT>
+ComponentT &Manager<TypeListT>::getComponent(const uint64 entity_id)
+{
+	return m_componentBuffer.template getComponent<ComponentT>(entity_id);
+}
+
+template <typename TypeListT>
+template <uint16 TypeIndex>
+std::vector<ComponentWrapper<meta::TypeAt<TypeIndex, TypeListT>>> &Manager<TypeListT>::getComponentBucket()
+{
+	return m_componentBuffer.template getComponentBucket<meta::TypeAt<TypeIndex, TypeListT>>();
+}
+
+template <typename TypeListT>
+template <typename ComponentT>
+std::vector<ComponentWrapper<ComponentT>> &Manager<TypeListT>::getComponentBucket()
+{
+	return m_componentBuffer.template getComponentBucket<ComponentT>();
 }
 
 template <typename TypeListT>
@@ -121,6 +164,8 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	m_entityBuffer.pop_back();
 	std::swap(m_entityFlags[pos], m_entityFlags.back());
 	m_entityFlags.pop_back();
+	std::swap(m_entityComponents[pos], m_entityComponents.back());
+	m_entityComponents.pop_back();
 }
 
 // PRIVATE

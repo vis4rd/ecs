@@ -15,7 +15,7 @@ int main()
     struct C6{};
     struct C7{};
     struct C8{};
-    struct C9{};
+    struct C9{int data;};
     struct D0{};
     struct D1{};
     struct D2{};
@@ -46,6 +46,9 @@ int main()
     {
         manager.addEntity<30>(ecs::uint64{0x3FFFFFFF}, ecs::uint64{1});
     }
+
+    auto &comp1 = manager.getComponent<9>(200);
+    comp1.data = 2;
 
     for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)
     {

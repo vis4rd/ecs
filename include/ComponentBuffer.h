@@ -68,12 +68,12 @@ public:
 				}
 			}
 			throw std::out_of_range(
-				"template <typename ComponentT> auto &getComponent(const uint64 entity_id): There is no such component under given Entity ID.");
+				"template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id): There is no such component under given Entity ID.");
 		}
 		else
 		{
 			throw std::invalid_argument(
-				"template <typename ComponentT> auto &getComponentBucket(): There's no such component in ComponentPool.");
+				"template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id): There's no such component in ComponentPool.");
 		}
 	}
 
