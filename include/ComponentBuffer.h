@@ -85,8 +85,7 @@ public:
 	{
 		// TBD : Check whether such Entity ID was ever introduced into any component (maybe
 		//       separate vector of ids?)
-		auto result = (std::make_tuple(getComponent<ComponentListT>(entity_id)...));
-		return result;
+		return (std::forward_as_tuple(getComponent<ComponentListT>(entity_id)...));
 	}
 
 	template <typename ComponentT>
@@ -159,7 +158,7 @@ public:
 		//       Use std::apply above (?), should work (no temp_param, std::function as argument??)
 	}
 
-	// Remove signle component with given type and Entity ID. Both arguments must be valid.
+	// Remove single component with given type and Entity ID. Both arguments must be valid.
 	template <typename ComponentT>
 	void removeComponent(const uint64 entity_id)
 	{
