@@ -16,6 +16,8 @@
 #include <list>
 #include <memory>
 #include <optional>
+#include <functional>
+#include <bitset>
 
 #include <cstdlib>
 #include <ctime>
