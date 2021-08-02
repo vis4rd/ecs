@@ -49,6 +49,7 @@ int main()
 
     auto &comp1 = manager.getComponent<9>(200);
     comp1.data = 2;
+    manager.checkComponent<9>(200);
 
     for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)
     {

@@ -24,8 +24,10 @@ public:
 	template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id);
 	template <uint16 TypeIndex> std::vector<ComponentWrapper<meta::TypeAt<TypeIndex, TypeListT>>> &getComponentBucket();
 	template <typename ComponentT> std::vector<ComponentWrapper<ComponentT>> &getComponentBucket();
+	template <uint16 TypeIndex> const bool checkComponent(const uint64 entity_id) const noexcept;
 
 	void deleteEntity(const uint64 entity_id);
+	const bool checkEntity(const uint64 entity_id) const noexcept;
 
 private:
 	template <uint16 Index>
@@ -148,6 +150,29 @@ std::vector<ComponentWrapper<ComponentT>> &Manager<TypeListT>::getComponentBucke
 }
 
 template <typename TypeListT>
+template <uint16 TypeIndex>
+const bool Manager<TypeListT>::checkComponent(const uint64 entity_id) const noexcept
+{
+	if(meta::DoesTypeExist<meta::TypeAt<TypeIndex, TypeListT>, TypeListT>)
+	{
+		// returned value is of type std::optional<type>
+		const auto result = m_componentBuffer.template getComponentByIndex<TypeIndex>(entity_id);
+		if(result.has_value())  // result contains some value
+		{
+			return true;
+		}
+		else  // otherwise (ex. std::nullopt or default-constructed value)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+}
+
+template <typename TypeListT>
 void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 {
 	auto e = m_entityBuffer.begin();
@@ -166,6 +191,19 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	m_entityFlags.pop_back();
 	std::swap(m_entityComponents[pos], m_entityComponents.back());
 	m_entityComponents.pop_back();
+}
+
+template <typename TypeListT>
+const bool Manager<TypeListT>::checkEntity(const uint64 entity_id) const noexcept
+{
+	for(auto &e : m_entityBuffer)
+	{
+		if(e.getID() == entity_id)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // PRIVATE

@@ -104,6 +104,34 @@ public:
 			ComponentWrapper<meta::TypeAt<decimalIndex, m_tPool>>(entity_id))();
 	}
 
+	template <uint16 decimalIndex>
+	const std::optional<meta::TypeAt<decimalIndex, m_tPool>> getComponentByIndex(const uint64 entity_id) const noexcept
+	{
+		auto &vec = std::get<decimalIndex>(m_cBuffer);
+		for(auto &c : vec)
+		{
+			if(c.eID() == entity_id)
+			{
+				return c();
+			}
+		}
+		return std::nullopt;
+	}
+
+	template <uint16 decimalIndex>
+	std::optional<meta::TypeAt<decimalIndex, m_tPool>> getComponentByIndex(const uint64 entity_id) noexcept
+	{
+		auto &vec = std::get<decimalIndex>(m_cBuffer);
+		for(auto &c : vec)
+		{
+			if(c.eID() == entity_id)
+			{
+				return c();
+			}
+		}
+		return std::nullopt;
+	}
+
 	// Removes all compononents with given entity_id (in all vectors)
 	void removeComponents(const uint64 entity_id) noexcept
 	{

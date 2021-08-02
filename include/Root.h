@@ -15,6 +15,7 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include <optional>
 
 #include <cstdlib>
 #include <ctime>
