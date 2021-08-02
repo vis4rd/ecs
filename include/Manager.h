@@ -13,7 +13,6 @@ class Manager final
 {
 public:
 	Manager(const uint64 max_entity_count = uint64{1000});
-	void initComponentBuffer();
 
 	// uint64 contains bitset of components.
 	// Manager assumes that the user knows the order of components in the pool.
