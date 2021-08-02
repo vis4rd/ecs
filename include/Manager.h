@@ -28,9 +28,11 @@ public:
 	void deleteEntity(const uint64 entity_id);
 	const bool checkEntity(const uint64 entity_id) const noexcept;
 
+	template <typename... ComponentListT> void applySystem(std::function<void(ComponentListT& ...)> system);
+
 private:
-	template <uint16 Index>
-	void addEntityComponents(const uint64 components, const uint64 &entity_id);
+	template <uint16 Index> void addEntityComponents(const uint64 components, const uint64 &entity_id);
+	template <typename... ComponentListT> auto getMatchingComponentPack(const uint64 &entity_id);
 
 private:
 	std::vector<Entity> m_entityBuffer;  // stores all entities
@@ -205,6 +207,51 @@ const bool Manager<TypeListT>::checkEntity(const uint64 entity_id) const noexcep
 	return false;
 }
 
+// apply function to all entities holding required components
+//
+// example:
+// 	void system(int &arg1) { arg1 = 5; }
+// 	std::function<void(int&)> fun = system;
+// 
+// 	// Let's assume that ComponentBuffer has an int as one of the components. Then:
+// 
+// 	using CPool = ecs::meta::ComponentPool<int>;  // creating pool of components for the manager
+// 	ecs::Manager<CPool> manager;  // holds only one component - int
+// 	manager.addEntity<1>(ecs::uint64{1} << 63, ecs::uint64{0});
+// 	// The second argument are flags, we pass 0 here to simplify the example.
+// 	// Notice that the first (and only) component has the left-most bit position.
+// 
+// 	manager.applySystem<int>(fun);
+//  
+//  // The system(int&) function has been applied to every entity with int component.
+// example-end
+// 
+// Template parameters are components that filter entities for which the system will be applied.
+// The fewer components are required, the faster the application will work.
+// Given components and system arguments have to match 100% (including the same order of passing)!
+// System's arguments have to be references, otherwise the value will be copied and the whole
+//   operation would not make any sense.
+// 
+// In future (maybe) with std::unordered_map implementation, this method should be vastly faster.
+
+template <typename TypeListT>
+template <typename... ComponentListT>
+void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
+{
+	// creating a bitset which will be compared with m_entityComponents vector
+	uint64 bitset = uint64{0};
+	((bitset |= (uint64{1} << (63 - meta::IndexOf<ComponentListT, TypeListT>))), ...);
+
+	for(uint64 i = uint64{0}; i < m_entityCount; i++)
+	{
+		if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+		{
+			// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i].getID()));
+		}
+	}
+}
+
 // PRIVATE
 template <typename TypeListT>
 template <uint16 Index>
@@ -227,6 +274,13 @@ void Manager<TypeListT>::addEntityComponents(const uint64 components, const uint
 	{
 		this->addEntityComponents<Index - 1>(components, entity_id);
 	}
+}
+
+template <typename TypeListT>
+template <typename... ComponentListT>
+auto Manager<TypeListT>::getMatchingComponentPack(const uint64 &entity_id)
+{
+	return m_componentBuffer.template getComponentsMatching<ComponentListT...>(entity_id);
 }
 
 }  // namespace ecs
