@@ -70,6 +70,9 @@ int main()
     std::cout << manager.getComponent<C9>(789).data << std::endl;
     std::function<void(char &)> fun3 = [&](char &c){ c = 'c'; };
     manager.applySystem<char>(fun3);
+
+    manager.applySystem<int>(test_fun1);
+    manager.applySystem<C9>(test_fun2);
     //
 
     for(ecs::uint32 i = ecs::uint32{0}; i < ecs::uint32{1000}; i++)

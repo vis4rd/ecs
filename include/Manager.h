@@ -29,6 +29,7 @@ public:
 	const bool checkEntity(const uint64 entity_id) const noexcept;
 
 	template <typename... ComponentListT> void applySystem(std::function<void(ComponentListT& ...)> system);
+	template <typename... ComponentListT> void applySystem(void (*system)(ComponentListT& ...));
 
 private:
 	template <uint16 Index> void addEntityComponents(const uint64 components, const uint64 &entity_id);
@@ -237,6 +238,24 @@ const bool Manager<TypeListT>::checkEntity(const uint64 entity_id) const noexcep
 template <typename TypeListT>
 template <typename... ComponentListT>
 void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
+{
+	// creating a bitset which will be compared with m_entityComponents vector
+	uint64 bitset = uint64{0};
+	((bitset |= (uint64{1} << (63 - meta::IndexOf<ComponentListT, TypeListT>))), ...);
+
+	for(uint64 i = uint64{0}; i < m_entityCount; i++)
+	{
+		if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+		{
+			// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i].getID()));
+		}
+	}
+}
+
+template <typename TypeListT>
+template <typename... ComponentListT>
+void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 {
 	// creating a bitset which will be compared with m_entityComponents vector
 	uint64 bitset = uint64{0};
