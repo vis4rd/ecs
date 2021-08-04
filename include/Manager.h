@@ -65,6 +65,10 @@ m_entityCount(uint64{0})
 	{
 		m_entityFlags.reserve(m_maxEntityCount);
 	}
+	if(m_entityComponents.capacity() < m_maxEntityCount)
+	{
+		m_entityComponents.reserve(m_maxEntityCount);
+	}
 }
 
 template <typename TypeListT>
@@ -214,7 +218,7 @@ void Manager<TypeListT>::deleteAllEntities()
 {
 	// remove all components
 	m_componentBuffer.clear();
-	m_entityComponents = uint64{0};
+	m_entityComponents.clear();
 
 	// remove all flags
 	m_entityFlags.clear();
