@@ -18,6 +18,9 @@
 #include <optional>
 #include <functional>
 #include <bitset>
+#include <chrono>
+#include <algorithm>
+#include <numeric>
 
 #include <cstdlib>
 #include <ctime>
