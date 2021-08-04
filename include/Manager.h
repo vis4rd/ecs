@@ -17,7 +17,6 @@ public:
 	// uint64 contains bitset of components.
 	// Manager assumes that the user knows the order of components in the pool.
 	// Most-important bit represents the first component in the pool.
-	template <uint16 ComponentCount = uint16{64}> void addEntity(const uint64 components, const uint64 flags);
 	template <uint16 TypeIndex> void addComponent(const uint64 entity_id);
 	template <uint16 TypeIndex> meta::TypeAt<TypeIndex, TypeListT> &getComponent(const uint64 entity_id);
 	template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id);
@@ -25,8 +24,10 @@ public:
 	template <typename ComponentT> std::vector<ComponentWrapper<ComponentT>> &getComponentBucket();
 	template <uint16 TypeIndex> const bool checkComponent(const uint64 entity_id) const noexcept;
 
+	template <uint16 ComponentCount = uint16{64}> void addEntity(const uint64 components, const uint64 flags);
 	void deleteEntity(const uint64 entity_id);
 	const bool checkEntity(const uint64 entity_id) const noexcept;
+	void deleteAllEntities();
 
 	template <typename... ComponentListT> void applySystem(std::function<void(ComponentListT& ...)> system);
 	template <typename... ComponentListT> void applySystem(void (*system)(ComponentListT& ...));
@@ -42,7 +43,7 @@ private:
 	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 
 	uint16 m_flagCount;  // number of existing entity flags
-	static constexpr const uint16 m_componentCount = meta::TypeListSize<TypeListT>;  // number of components
+	static constexpr const uint16 m_componentCount = meta::TypeListSize<TypeListT>;  // number of component types
 	uint64 m_maxEntityCount;  // max number of entities
 	uint64 m_entityCount;  // number of currently existing entities
 	// uint64 m_disposedEntityCount;  // number of destroyed entities in m_disposedEntityPool
@@ -63,34 +64,6 @@ m_entityCount(uint64{0})
 	if(m_entityFlags.capacity() < m_maxEntityCount)
 	{
 		m_entityFlags.reserve(m_maxEntityCount);
-	}
-}
-
-template <typename TypeListT>
-template <uint16 ComponentCount>
-void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
-{
-	if(m_entityCount < m_maxEntityCount)
-	{
-		m_entityCount++;
-		m_entityBuffer.emplace_back(Entity());
-
-		// parsing components
-		const uint64 &id = m_entityBuffer.back().getID();
-		this->addEntityComponents<ComponentCount-1>(components, id);
-
-		// adding flags
-		m_entityFlags.push_back(flags);
-
-		// adding components
-		m_entityComponents.push_back(components);
-
-		// TBD : use disposed entities instead of assigning new ones everytime
-	}
-	else
-	{
-		std::cout << "[WARNING] Number of allocated entities has reached the cap," <<
-			" ignoring the new ones..." << std::endl;
 	}
 }
 
@@ -175,6 +148,34 @@ const bool Manager<TypeListT>::checkComponent(const uint64 entity_id) const noex
 }
 
 template <typename TypeListT>
+template <uint16 ComponentCount>
+void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
+{
+	if(m_entityCount < m_maxEntityCount)
+	{
+		m_entityCount++;
+		m_entityBuffer.emplace_back(Entity());
+
+		// parsing components
+		const uint64 &id = m_entityBuffer.back().getID();
+		this->addEntityComponents<ComponentCount-1>(components, id);
+
+		// adding flags
+		m_entityFlags.push_back(flags);
+
+		// adding components
+		m_entityComponents.push_back(components);
+
+		// TBD : use disposed entities instead of assigning new ones everytime
+	}
+	else
+	{
+		std::cout << "[WARNING] Number of allocated entities has reached the cap," <<
+			" ignoring the new ones..." << std::endl;
+	}
+}
+
+template <typename TypeListT>
 void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 {
 	auto e = m_entityBuffer.begin();
@@ -206,6 +207,22 @@ const bool Manager<TypeListT>::checkEntity(const uint64 entity_id) const noexcep
 		}
 	}
 	return false;
+}
+
+template <typename TypeListT>
+void Manager<TypeListT>::deleteAllEntities()
+{
+	// remove all components
+	m_componentBuffer.clear();
+	m_entityComponents = uint64{0};
+
+	// remove all flags
+	m_entityFlags.clear();
+	m_flagCount = uint16{0};
+
+	// clear entity buffer
+	m_entityBuffer.clear();
+	m_entityCount = uint64{0};
 }
 
 // apply function to all entities holding required components

@@ -131,6 +131,17 @@ public:
 		return std::nullopt;
 	}
 
+	// Removes all components
+	template <uint16 Index = (sizeof... (Typepack) - 1)>
+	void clear() noexcept
+	{
+		std::get<Index>(m_cBuffer).clear();
+		if constexpr(Index > uint16{0})
+		{
+			this->clear<Index - uint16{1}>();
+		}
+	}
+
 	// Removes all compononents with given entity_id (in all vectors)
 	void removeComponents(const uint64 entity_id) noexcept
 	{
