@@ -24,7 +24,7 @@ class ComponentBuffer<meta::TypeList<Typepack...>>
 	using m_cPool = meta::ComponentPool<ComponentWrapper<Typepack> ...>;  // WRAPPED
 	using m_tPool = meta::TypeList<Typepack...>;  // NOT WRAPPED
 public:
-	ComponentBuffer() = default;
+	ComponentBuffer(const uint64 max_entity_count = uint64{1000});
 
 	// Returns a vector of specified component types
 	// WRAPS COMPONENT, DOES NOT UNWRAP ON RETURN
@@ -79,7 +79,27 @@ public:
 
 private:
 	meta::metautil::TupleOfVectorsOfTypes<m_cPool> m_cBuffer;
+	uint64 m_maxEntityCount;
 };
+
+// ################################################################################################
+// Constructor
+
+template <typename... Typepack>
+ComponentBuffer<meta::TypeList<Typepack...>>::ComponentBuffer(const uint64 max_entity_count)
+:
+m_maxEntityCount(max_entity_count)
+{
+	auto help = [&](const uint64 &max, auto &vec)
+	{
+		if(vec.capacity() < max)
+		{
+			vec.reserve(max);
+		}
+	};
+	((help(max_entity_count, this->getComponentBucket<Typepack>())), ...);
+}
+
 
 // ################################################################################################
 // getComponentBucket()
