@@ -55,6 +55,34 @@ public:
 		}
 	}
 
+	// If requested components exists, it is returned, otherwise creates new component.
+	// If given component type does not exist, returns std::nullopt.
+	template <typename ComponentT>
+	std::optional<ComponentT> &tryGetComponent(const uint64 entity_id) noexcept
+	{
+		if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
+		{
+			ComponentT &result = ComponentT{};
+			try
+			{
+				result = this->getComponent<ComponentT>(entity_id);
+			}
+			catch(const std::exception &e)
+			{
+				std::cout << "[WARNING] std::optional<ComponentT> &tryGetComponent(const uint64 entity_id) noexcept" << std::endl
+					<< "    " << e.what() << std::endl;
+				return this->addComponent<ComponentT>(entity_id);
+			}
+			// if not caught any exception, the component exists, hence it is returned
+			return result;
+		}
+		else
+		{
+			std::cout << "[WARNING] std::optional<ComponentT> &tryGetComponent(const uint64 entity_id) noexcept: There's no such component in ComponentPool." << std::endl;
+			return std::nullopt;
+		}
+	}
+
 	template <typename ComponentT>
 	ComponentT &getComponent(const uint64 entity_id)  // DOES NOT WRAP COMPONENT, UNWRAPS ON RETURN
 	{
