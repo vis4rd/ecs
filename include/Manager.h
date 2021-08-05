@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Root.h"
-#include "Entity.h"
 #include "Component.h"
 #include "ComponentBuffer.h"
 
@@ -37,17 +36,21 @@ private:
 	template <typename... ComponentListT> auto getMatchingComponentPack(const uint64 &entity_id);
 
 private:
-	std::vector<Entity> m_entityBuffer;  // stores all entities
+	std::vector<uint64> m_entityBuffer;  // stores all entities
 	std::vector<uint64> m_entityFlags;  // stores flags of all entities
 	std::vector<uint64> m_entityComponents;  // stores component bitsets of all entities
 	ComponentBuffer<TypeListT> m_componentBuffer;  // stores all components
 
+	static uint64 m_nextEntityID;
 	uint16 m_flagCount;  // number of existing entity flags
 	static constexpr const uint16 m_componentCount = meta::TypeListSize<TypeListT>;  // number of component types
 	uint64 m_maxEntityCount;  // max number of entities
 	uint64 m_entityCount;  // number of currently existing entities
 	// uint64 m_disposedEntityCount;  // number of destroyed entities in m_disposedEntityPool
 };
+
+template <typename TypeListT>
+uint64 Manager<TypeListT>::m_nextEntityID = uint64{0};
 
 template <typename TypeListT>
 Manager<TypeListT>::Manager(const uint64 max_entity_count)
@@ -91,7 +94,7 @@ void Manager<TypeListT>::addComponent(const uint64 entity_id)
 		uint16 i = uint16{0};
 		for(; i < m_entityCount; i++)
 		{
-			if(m_entityBuffer[i].getID() == entity_id)
+			if(m_entityBuffer[i] == entity_id)
 			{
 				break;
 			}
@@ -158,10 +161,10 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 	if(m_entityCount < m_maxEntityCount)
 	{
 		m_entityCount++;
-		m_entityBuffer.emplace_back(Entity());
+		m_entityBuffer.emplace_back(m_nextEntityID++);
 
 		// parsing components
-		const uint64 &id = m_entityBuffer.back().getID();
+		const uint64 &id = m_entityBuffer.back();
 		this->addEntityComponents<ComponentCount-1>(components, id);
 
 		// adding flags
@@ -185,12 +188,12 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	auto e = m_entityBuffer.begin();
 	for(; e < m_entityBuffer.end(); e++)
 	{
-		if(e->getID() == entity_id)
+		if(*e == entity_id)
 		{
 			break;
 		}
 	}
-	m_componentBuffer.removeComponents(e->getID());
+	m_componentBuffer.removeComponents(*e);
 	auto pos = e - m_entityBuffer.begin();
 	std::swap(*e, m_entityBuffer.back());
 	m_entityBuffer.pop_back();
@@ -205,7 +208,7 @@ const bool Manager<TypeListT>::checkEntity(const uint64 entity_id) const noexcep
 {
 	for(auto &e : m_entityBuffer)
 	{
-		if(e.getID() == entity_id)
+		if(e == entity_id)
 		{
 			return true;
 		}
@@ -269,7 +272,7 @@ void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> sy
 		if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
 		{
 			// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i].getID()));
+			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
 		}
 	}
 }
@@ -287,7 +290,7 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 		if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
 		{
 			// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i].getID()));
+			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
 		}
 	}
 }
