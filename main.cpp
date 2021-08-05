@@ -1,5 +1,4 @@
 #include <iostream>
-#include "include/Entity.h"
 #include "include/Component.h"
 #include "include/Manager.h"
 #include "include/ComponentBuffer.h"
