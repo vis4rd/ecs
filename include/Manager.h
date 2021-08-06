@@ -28,6 +28,9 @@ public:
 	const bool checkEntity(const uint64 entity_id) const noexcept;
 	void deleteAllEntities();
 
+	const bool getFlag(const uint64 flagBit, const uint64 entity_id) const;
+	void setFlag(const uint64 flagBit, const uint64 entity_id, const bool value);
+
 	template <typename... ComponentListT> void applySystem(std::function<void(ComponentListT& ...)> system);
 	template <typename... ComponentListT> void applySystem(void (*system)(ComponentListT& ...));
 
@@ -222,6 +225,33 @@ void Manager<TypeListT>::deleteAllEntities()
 	// clear entity buffer
 	m_entityBuffer.clear();
 	m_entityCount = uint64{0};
+}
+
+template <typename TypeListT>
+const bool Manager<TypeListT>::getFlag(const uint64 flagBit, const uint64 entity_id) const
+{
+	auto fl = m_entityFlags.begin();
+	for(auto id = m_entityBuffer.begin(); id != m_entityBuffer.end(); id++, fl++)
+	{
+		if(*id == entity_id)
+		{
+			return (flagBit & *fl);
+		}
+	}
+	return false;
+}
+
+template <typename TypeListT>
+void Manager<TypeListT>::setFlag(const uint64 flagBit, const uint64 entity_id, const bool value)
+{
+	auto fl = m_entityFlags.begin();
+	for(auto id = m_entityBuffer.begin(); id != m_entityBuffer.end(); id++, fl++)
+	{
+		if(*id == entity_id)
+		{
+			(*fl) ^= (-value ^ (*fl)) & flagBit;  // sets the flagBit bit to value
+		}
+	}
 }
 
 // apply function to all entities holding required components

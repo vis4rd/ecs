@@ -34,6 +34,11 @@ struct E7{};
 struct E8{};
 struct E9{};
 
+enum
+{
+    F_ALIVE = 1 << 0
+};
+
 void test_fun1(int &arg1)
 {
     static int d;
@@ -62,8 +67,10 @@ float measure_time(bool &&suppressed = false)
     ecs::Manager<CP> manager;
     for(ecs::uint32 i = 0; i < ecs::uint32{1000}; i++)
     {
-        manager.addEntity<30>(ecs::uint64{0xFFFFFFFFFFFFFFFF}, ecs::uint64{1});
+        manager.addEntity<30>(ecs::uint64{0xFFFFFFFFFFFFFFFF}, F_ALIVE);
     }
+
+    manager.getFlag(F_ALIVE, 50);
 
     /*auto &comp1 = manager.getComponent<9>(200);
     comp1.data = 2;*/
