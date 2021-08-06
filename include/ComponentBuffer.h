@@ -10,6 +10,18 @@ namespace meta
 {
 	template <typename... Typepack>
 	using ComponentPool = TypeList<Typepack ...>;
+
+	template <typename TypeListT>
+	struct TupleOfMapsOfTypesImpl;
+
+	template <typename... Typepack>
+	struct TupleOfMapsOfTypesImpl<TypeList<Typepack...>>
+	{
+		using Tuple = typename std::tuple<std::unordered_map<uint64, Typepack> ...>;
+	};
+
+	template <typename TypeListT>
+	using TupleOfMapsOfTypes = typename TupleOfMapsOfTypesImpl<TypeListT>::Tuple;
 }  // namespace meta
 
 // ################################################################################################
@@ -29,7 +41,7 @@ public:
 	// Returns a vector of specified component types
 	// WRAPS COMPONENT, DOES NOT UNWRAP ON RETURN
 	template <typename ComponentT>
-	std::vector<ComponentWrapper<ComponentT>> &getComponentBucket();
+	std::unordered_map<uint64, ComponentWrapper<ComponentT>> &getComponentBucket();
 
 	// If requested components exists, it is returned, otherwise creates new component.
 	// If given component type does not exist, returns std::nullopt.
@@ -78,7 +90,7 @@ public:
 	void printAll() const;
 
 private:
-	meta::metautil::TupleOfVectorsOfTypes<m_cPool> m_cBuffer;
+	meta::TupleOfMapsOfTypes<m_cPool> m_cBuffer;
 	uint64 m_maxEntityCount;
 };
 
@@ -90,12 +102,9 @@ ComponentBuffer<meta::TypeList<Typepack...>>::ComponentBuffer(const uint64 max_e
 :
 m_maxEntityCount(max_entity_count)
 {
-	auto help = [&](const uint64 &max, auto &vec)
+	auto help = [&](const uint64 &max, auto &map)
 	{
-		if(vec.capacity() < max)
-		{
-			vec.reserve(max);
-		}
+		map.reserve(std::min(map.max_size(), max));
 	};
 	((help(max_entity_count, this->getComponentBucket<Typepack>())), ...);
 }
@@ -106,7 +115,7 @@ m_maxEntityCount(max_entity_count)
 
 template <typename... Typepack>
 template <typename ComponentT>
-std::vector<ComponentWrapper<ComponentT>> &ComponentBuffer<meta::TypeList<Typepack...>>::getComponentBucket()
+std::unordered_map<uint64, ComponentWrapper<ComponentT>> &ComponentBuffer<meta::TypeList<Typepack...>>::getComponentBucket()
 {
 	if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
 	{
@@ -128,19 +137,8 @@ std::optional<ComponentT> &ComponentBuffer<meta::TypeList<Typepack...>>::tryGetC
 {
 	if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
 	{
-		ComponentT &result = ComponentT{};
-		try
-		{
-			result = this->getComponent<ComponentT>(entity_id);
-		}
-		catch(const std::exception &e)
-		{
-			std::cout << "[WARNING] std::optional<ComponentT> &tryGetComponent(const uint64 entity_id) noexcept" << std::endl
-				<< "    " << e.what() << std::endl;
-			return this->addComponent<ComponentT>(entity_id);
-		}
-		// if not caught any exception, the component exists, hence it is returned
-		return result;
+		auto &map = this->getComponentBucket<ComponentT>();
+		return map.insert_or_assign(entity_id, ComponentWrapper<ComponentT>{entity_id}).second;
 	}
 	else
 	{
@@ -158,15 +156,17 @@ ComponentT &ComponentBuffer<meta::TypeList<Typepack...>>::getComponent(const uin
 {
 	if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
 	{
-		for(auto &iter : this->getComponentBucket<ComponentT>())
+		auto &map = std::get<meta::IndexOf<ComponentWrapper<ComponentT>, m_cPool>>(m_cBuffer);
+		auto iter = map.find(entity_id);
+		if(iter == map.end())
 		{
-			if(iter.eID() == entity_id)
-			{
-				return iter();
-			}
+			throw std::out_of_range(
+				"template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id): There is no such component under given Entity ID.");
 		}
-		throw std::out_of_range(
-			"template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id): There is no such component under given Entity ID.");
+		else
+		{
+			return (iter->second)();
+		}
 	}
 	else
 	{
@@ -184,7 +184,7 @@ auto ComponentBuffer<meta::TypeList<Typepack...>>::getComponentsMatching(const u
 {
 	// TBD : Check whether such Entity ID was ever introduced into any component (maybe
 	//       separate vector of ids?)
-	return (std::forward_as_tuple(getComponent<ComponentListT>(entity_id)...));
+	return (std::forward_as_tuple(this->getComponent<ComponentListT>(entity_id)...));
 }
 
 // ################################################################################################
@@ -194,8 +194,8 @@ template <typename... Typepack>
 template <typename ComponentT>
 auto &ComponentBuffer<meta::TypeList<Typepack...>>::addComponent(const uint64 entity_id)
 {
-	return this->getComponentBucket<ComponentT>().emplace_back(
-		ComponentWrapper<ComponentT>(entity_id))();
+	return this->getComponentBucket<ComponentT>().emplace(
+		entity_id, ComponentWrapper<ComponentT>(entity_id))();
 	// there's additional parenthesis at the end to unwrap the component from ComponentWrapper
 }
 
@@ -206,8 +206,13 @@ template <typename... Typepack>
 template <uint16 decimalIndex>
 auto &ComponentBuffer<meta::TypeList<Typepack...>>::addComponentByIndex(const uint64 entity_id)
 {
-	return std::get<decimalIndex>(m_cBuffer).emplace_back(
-		ComponentWrapper<meta::TypeAt<decimalIndex, m_tPool>>(entity_id))();
+	auto &map = std::get<decimalIndex>(m_cBuffer);
+	auto [iter, inserted] = map.emplace(entity_id, ComponentWrapper<meta::TypeAt<decimalIndex, m_tPool>>{entity_id});
+	if(!inserted)
+	{
+		std::cout << "[WARNING] auto &ComponentBuffer<meta::TypeList<Typepack...>>::addComponentByIndex(const uint64 entity_id): Component under given Entity ID already exists, its value has been overriden." << std::endl;
+	}
+	return (iter->second)();
 }
 
 // ################################################################################################
@@ -217,15 +222,16 @@ template <typename... Typepack>
 template <uint16 decimalIndex>
 const std::optional<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>> ComponentBuffer<meta::TypeList<Typepack...>>::getComponentByIndex(const uint64 entity_id) const noexcept
 {
-	auto &vec = std::get<decimalIndex>(m_cBuffer);
-	for(auto &c : vec)
+	auto &map = std::get<decimalIndex>(m_cBuffer);
+	auto iter = map.find(entity_id);
+	if(iter == map.end())
 	{
-		if(c.eID() == entity_id)
-		{
-			return c();
-		}
+		return std::nullopt;
 	}
-	return std::nullopt;
+	else
+	{
+		return (iter->second)();
+	}
 }
 
 // ################################################################################################
@@ -235,15 +241,16 @@ template <typename... Typepack>
 template <uint16 decimalIndex>
 std::optional<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>> ComponentBuffer<meta::TypeList<Typepack...>>::getComponentByIndex(const uint64 entity_id) noexcept
 {
-	auto &vec = std::get<decimalIndex>(m_cBuffer);
-	for(auto &c : vec)
+	auto &map = std::get<decimalIndex>(m_cBuffer);
+	auto &iter = map.find(entity_id);
+	if(iter == map.end())
 	{
-		if(c.eID() == entity_id)
-		{
-			return c();
-		}
+		return std::nullopt;
 	}
-	return std::nullopt;
+	else
+	{
+		return (iter->second)();
+	}
 }
 
 // ################################################################################################
@@ -266,23 +273,15 @@ void ComponentBuffer<meta::TypeList<Typepack...>>::clear() noexcept
 template <typename... Typepack>
 void ComponentBuffer<meta::TypeList<Typepack...>>::removeComponents(const uint64 entity_id) noexcept
 {
-	auto func = [&entity_id](auto& vec)
+	/*auto func = [&entity_id](auto& map)
 	{
-		for(auto it = vec.begin(); it < vec.end(); it++)
-		{
-			if(it->eID() == entity_id)
-			{
-				// std::cout << "removing (" << (*it)() <<") of eID = " << it->eID() << std::endl;
-				std::swap(*it, vec.back());
-				vec.pop_back();
-			}
-		}
-	};
+		map.erase(entity_id);
+	};*/
 	// std::cout << util::type_name_to_string<decltype(func)>() << std::endl;
 	std::apply(
-		[&](auto& ...vec)
+		[&](auto& ...map)
 		{
-			(func(vec), ...);
+			(map.erase(entity_id), ...);
 		},
 		m_cBuffer
 	);
@@ -299,18 +298,18 @@ void ComponentBuffer<meta::TypeList<Typepack...>>::removeComponent(const uint64 
 {
 	if constexpr(meta::DoesTypeExist<ComponentT, m_tPool>)
 	{
-		auto &vec = this->getComponentBucket<ComponentT>();
-		for(auto it = vec.begin(); it < vec.end(); it++)
+		auto &map = this->getComponentBucket<ComponentT>();
+		auto &iter = map.find(entity_id);
+		if(iter != map.end())
 		{
-			if(it->eID() == entity_id)
-			{
-				std::swap(*it, vec.back());
-				vec.pop_back();
-				return;
-			}
+			map.erase(iter);
+			return;
 		}
-		throw std::out_of_range(
-			"template <typename ComponentT> auto &getComponent(const uint64 entity_id): There is no such component under given Entity ID.");
+		else
+		{
+			std::cout << "[WARNING] void ComponentBuffer<meta::TypeList<Typepack...>>::removeComponent(const uint64 entity_id): There's no such component under given Entity ID." << std::endl;
+			return;
+		}
 	}
 	else
 	{
@@ -326,15 +325,15 @@ template <typename... Typepack>
 const uint64 ComponentBuffer<meta::TypeList<Typepack...>>::size() const
 {
 	uint64 result = uint64{0};
-	auto count = [&result](auto& vec)
+	auto count = [&result](auto& map)
 	{
-		result += vec.size();
+		result += map.size();
 	};
 	// std::cout << util::type_name_to_string<decltype(func)>() << std::endl;
 	std::apply(
-		[&](auto& ...vec)
+		[&](auto& ...map)
 		{
-			(count(vec), ...);
+			(count(map), ...);
 		},
 		m_cBuffer
 	);
@@ -357,21 +356,21 @@ const uint64 ComponentBuffer<meta::TypeList<Typepack...>>::bucketSize() const
 template <typename... Typepack>
 void ComponentBuffer<meta::TypeList<Typepack...>>::printAll() const
 {
-	auto prt = [&](auto& vec)
+	auto prt = [&](auto& map)
 	{
-		if(!vec.empty())
+		if(!map.empty())
 		{
-			vec[0].printType();
+			map.begin()->printType();
 			std::cout << " = { ";
-			for(auto &el : vec)
+			for(auto &el : map)
 			{
-				std::cout << el() << " ";
+				std::cout << (el.second)() << " ";
 			}
 			std::cout << "}" << std::endl;
 		}
 		else
 		{
-			vec[0].printType();
+			map.begin()->printType();
 			std::cout << " = { }" << std::endl;
 		}
 	};
@@ -380,9 +379,9 @@ void ComponentBuffer<meta::TypeList<Typepack...>>::printAll() const
 		<< "types = ";
 	meta::metautil::Print<m_tPool>();
 	std::apply(
-		[&](auto& ...vec)
+		[&](auto& ...map)
 		{
-			(prt(vec), ...);
+			(prt(map), ...);
 		},
 		m_cBuffer
 	);

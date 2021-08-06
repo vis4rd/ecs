@@ -19,8 +19,8 @@ public:
 	template <uint16 TypeIndex> void addComponent(const uint64 entity_id);
 	template <uint16 TypeIndex> meta::TypeAt<TypeIndex, TypeListT> &getComponent(const uint64 entity_id);
 	template <typename ComponentT> ComponentT &getComponent(const uint64 entity_id);
-	template <uint16 TypeIndex> std::vector<ComponentWrapper<meta::TypeAt<TypeIndex, TypeListT>>> &getComponentBucket();
-	template <typename ComponentT> std::vector<ComponentWrapper<ComponentT>> &getComponentBucket();
+	template <uint16 TypeIndex> std::unordered_map<uint64, ComponentWrapper<meta::TypeAt<TypeIndex, TypeListT>>> &getComponentBucket();
+	template <typename ComponentT> std::unordered_map<uint64, ComponentWrapper<ComponentT>> &getComponentBucket();
 	template <uint16 TypeIndex> const bool checkComponent(const uint64 entity_id) const noexcept;
 
 	template <uint16 ComponentCount = uint16{64}> void addEntity(const uint64 components, const uint64 flags);
@@ -119,14 +119,14 @@ ComponentT &Manager<TypeListT>::getComponent(const uint64 entity_id)
 
 template <typename TypeListT>
 template <uint16 TypeIndex>
-std::vector<ComponentWrapper<meta::TypeAt<TypeIndex, TypeListT>>> &Manager<TypeListT>::getComponentBucket()
+std::unordered_map<uint64, ComponentWrapper<meta::TypeAt<TypeIndex, TypeListT>>> &Manager<TypeListT>::getComponentBucket()
 {
 	return m_componentBuffer.template getComponentBucket<meta::TypeAt<TypeIndex, TypeListT>>();
 }
 
 template <typename TypeListT>
 template <typename ComponentT>
-std::vector<ComponentWrapper<ComponentT>> &Manager<TypeListT>::getComponentBucket()
+std::unordered_map<uint64, ComponentWrapper<ComponentT>> &Manager<TypeListT>::getComponentBucket()
 {
 	return m_componentBuffer.template getComponentBucket<ComponentT>();
 }
