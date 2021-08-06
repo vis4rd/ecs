@@ -94,7 +94,7 @@ void Manager<TypeListT>::addComponent(const uint64 entity_id)
 		uint16 i = uint16{0};
 		for(; i < m_entityCount; i++)
 		{
-			if(m_entityBuffer[i] == entity_id)
+			if(m_entityBuffer.at(i) == entity_id)
 			{
 				break;
 			}
@@ -138,20 +138,13 @@ const bool Manager<TypeListT>::checkComponent(const uint64 entity_id) const noex
 	if(meta::DoesTypeExist<meta::TypeAt<TypeIndex, TypeListT>, TypeListT>)
 	{
 		// returned value is of type std::optional<type>
-		const auto result = m_componentBuffer.template getComponentByIndex<TypeIndex>(entity_id);
-		if(result.has_value())  // result contains some value
+		// const auto result = ;
+		if(m_componentBuffer.template checkComponent<TypeIndex>(entity_id))  // result contains some value
 		{
 			return true;
 		}
-		else  // otherwise (ex. std::nullopt or default-constructed value)
-		{
-			return false;
-		}
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 template <typename TypeListT>
@@ -161,11 +154,10 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 	if(m_entityCount < m_maxEntityCount)
 	{
 		m_entityCount++;
-		m_entityBuffer.emplace_back(m_nextEntityID++);
+		m_entityBuffer.push_back(m_nextEntityID++);
 
 		// parsing components
-		const uint64 &id = m_entityBuffer.back();
-		this->addEntityComponents<ComponentCount-1>(components, id);
+		this->addEntityComponents<ComponentCount-1>(components, m_entityBuffer.back());
 
 		// adding flags
 		m_entityFlags.push_back(flags);
@@ -197,9 +189,9 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	auto pos = e - m_entityBuffer.begin();
 	std::swap(*e, m_entityBuffer.back());
 	m_entityBuffer.pop_back();
-	std::swap(m_entityFlags[pos], m_entityFlags.back());
+	std::swap(m_entityFlags.at(pos), m_entityFlags.back());
 	m_entityFlags.pop_back();
-	std::swap(m_entityComponents[pos], m_entityComponents.back());
+	std::swap(m_entityComponents.at(pos), m_entityComponents.back());
 	m_entityComponents.pop_back();
 }
 
@@ -287,10 +279,10 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 
 	for(uint64 i = uint64{0}; i < m_entityCount; i++)
 	{
-		if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+		if((bitset & m_entityComponents.at(i)) == bitset)  // if tested entity has requested components
 		{
 			// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer.at(i)));
 		}
 	}
 }

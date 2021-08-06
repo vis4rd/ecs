@@ -46,6 +46,11 @@ void test_fun2(C9 &arg1)
     arg1.data = b++;
 }
 
+void test_fun3(char &c)
+{
+    c = 'd';
+}
+
 float measure_time(bool &&suppressed = false)
 {
     auto clock = std::chrono::high_resolution_clock::now();
@@ -74,6 +79,7 @@ float measure_time(bool &&suppressed = false)
 
     manager.applySystem<int>(test_fun1);
     manager.applySystem<C9>(test_fun2);
+    manager.applySystem<char>(test_fun3);
     //
 
     manager.deleteAllEntities();

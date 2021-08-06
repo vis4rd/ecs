@@ -63,6 +63,10 @@ public:
 	template <uint16 Index = (sizeof... (Typepack) - 1)>
 	void clear() noexcept;
 
+	// Check whether component exists
+	template <uint16 Index>
+	const bool checkComponent(const uint64 entity_id) const noexcept;
+
 	// Removes all compononents with given entity_id (in all vectors)
 	void removeComponents(const uint64 entity_id) noexcept;
 
@@ -258,6 +262,24 @@ void ComponentBuffer<meta::TypeList<Typepack...>>::clear() noexcept
 	{
 		this->clear<Index - uint16{1}>();
 	}
+}
+
+// ################################################################################################
+// checkComponent()
+
+template <typename... Typepack>
+template <uint16 Index>
+const bool ComponentBuffer<meta::TypeList<Typepack...>>::checkComponent(const uint64 entity_id) const noexcept
+{
+	auto &vec = std::get<Index>(m_cBuffer);
+	for(auto cw = vec.begin(); cw < vec.end(); cw++)
+	{
+		if(!(cw->eID() - entity_id))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // ################################################################################################
