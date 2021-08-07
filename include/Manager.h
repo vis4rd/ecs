@@ -30,6 +30,8 @@ public:
 
 	const bool getFlag(const uint64 flagBit, const uint64 entity_id) const;
 	void setFlag(const uint64 flagBit, const uint64 entity_id, const bool value);
+	void setFlagsForAll(const uint64 flagBit, const bool value);  // sets a flag (or many flags) for all entities
+	std::vector<uint64> &getFlagBuffer();
 
 	template <typename... ComponentListT> void applySystem(std::function<void(ComponentListT& ...)> system);
 	template <typename... ComponentListT> void applySystem(void (*system)(ComponentListT& ...));
@@ -253,6 +255,22 @@ void Manager<TypeListT>::setFlag(const uint64 flagBit, const uint64 entity_id, c
 		}
 	}
 }
+
+template <typename TypeListT>
+void Manager<TypeListT>::setFlagsForAll(const uint64 flagBit, const bool value)
+{
+	for(auto fl = m_entityFlags.begin(); fl != m_entityFlags.end(); fl++)
+	{
+		(*fl) ^= (-value ^ (*fl)) & flagBit;  // sets the flagBit bit to value
+	}
+}
+
+template <typename TypeListT>
+std::vector<uint64> &Manager<TypeListT>::getFlagBuffer()
+{
+	return m_entityFlags;
+}
+
 
 // apply function to all entities holding required components
 //

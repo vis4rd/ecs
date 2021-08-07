@@ -70,13 +70,15 @@ float measure_time(bool &&suppressed = false)
         manager.addEntity<30>(ecs::uint64{0xFFFFFFFFFFFFFFFF}, F_ALIVE);
     }
 
-    manager.getFlag(F_ALIVE, 50);
+    // std::cout << manager.getFlag(F_ALIVE, 50) << std::endl;
+    // manager.setFlag(F_ALIVE, 50, false);
+    // std::cout << manager.getFlag(F_ALIVE, 50) << std::endl;
+    // auto &flags = manager.getFlagBuffer();
 
-    /*auto &comp1 = manager.getComponent<9>(200);
-    comp1.data = 2;*/
+    // auto &comp1 = manager.getComponent<9>(200);
+    // comp1.data = 2;
     manager.checkComponent<9>(200);
 
-    // THE GRAND TEST OF SYSTEM SUPPORT
     std::function<void(int &)> fun = test_fun1;
     std::function<void(C9 &)> fun2 = test_fun2;
     std::function<void(char &)> fun3 = [&](char &c){ c = 'c'; };
@@ -87,12 +89,8 @@ float measure_time(bool &&suppressed = false)
     manager.applySystem<int>(test_fun1);
     manager.applySystem<C9>(test_fun2);
     manager.applySystem<char>(test_fun3);
-    //
 
     manager.deleteAllEntities();
-
-    /*std::cout << "SIZE = " << ecs::meta::TypeListSize<CP> << std::endl;
-    std::cout << "INDEX = " << ecs::meta::IndexOf<C4, CP> << std::endl;*/
 
     auto clock2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(clock2 - clock);
