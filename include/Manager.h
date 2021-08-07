@@ -27,6 +27,8 @@ public:
 	void deleteEntity(const uint64 entity_id);
 	const bool checkEntity(const uint64 entity_id) const noexcept;
 	void deleteAllEntities();
+	const uint64 &getCurrentEntityCount() const noexcept;
+	const uint64 &getMaxEntityCount() const noexcept;
 
 	const bool getFlag(const uint64 flagBit, const uint64 entity_id) const;
 	void setFlag(const uint64 flagBit, const uint64 entity_id, const bool value);
@@ -198,6 +200,7 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	m_entityFlags.pop_back();
 	std::swap(m_entityComponents.at(pos), m_entityComponents.back());
 	m_entityComponents.pop_back();
+	m_entityCount--;
 }
 
 template <typename TypeListT>
@@ -227,6 +230,18 @@ void Manager<TypeListT>::deleteAllEntities()
 	// clear entity buffer
 	m_entityBuffer.clear();
 	m_entityCount = uint64{0};
+}
+
+template <typename TypeListT>
+const uint64 &Manager<TypeListT>::getCurrentEntityCount() const noexcept
+{
+	return m_entityCount;
+}
+
+template <typename TypeListT>
+const uint64 &Manager<TypeListT>::getMaxEntityCount() const noexcept
+{
+	return m_maxEntityCount;
 }
 
 template <typename TypeListT>
