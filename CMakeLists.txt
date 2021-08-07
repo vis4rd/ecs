@@ -5,7 +5,7 @@ project(ECS)
 
 ###################################################################################################
 
-set(CMAKE_CXX_FLAGS "-Wall -g -pedantic")
+set(CMAKE_CXX_FLAGS "-Wall -g -pedantic -pthread -fopenmp")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 

@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <exception>
 #include <thread>
+#include <omp.h>
 
 #include <set>
 #include <unordered_set>
@@ -24,6 +25,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 
 //type typedefs for consistency across all ECS files
 namespace ecs
