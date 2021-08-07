@@ -274,6 +274,7 @@ void Manager<TypeListT>::setFlag(const uint64 flagBit, const uint64 entity_id, c
 template <typename TypeListT>
 void Manager<TypeListT>::setFlagsForAll(const uint64 flagBit, const bool value)
 {
+	#pragma omp parallel for
 	for(auto fl = m_entityFlags.begin(); fl != m_entityFlags.end(); fl++)
 	{
 		(*fl) ^= (-value ^ (*fl)) & flagBit;  // sets the flagBit bit to value
@@ -312,7 +313,10 @@ std::vector<uint64> &Manager<TypeListT>::getFlagBuffer()
 // System's arguments have to be references, otherwise the value will be copied and the whole
 //   operation would not make any sense.
 // 
-// In future (maybe) with std::unordered_map implementation, this method should be vastly faster.
+// The method is split in two. Each part is being chosen depending on number of entities
+//   in the buffer. If there are less than 5000, this method is making use of OpenMP pragma
+//   for parallel for loops. Otherwise, there are std::threads used instead, since with such a high
+//   entity quantity it's theoretically faster than #pragma omp parallel for.
 
 template <typename TypeListT>
 template <typename... ComponentListT>
@@ -322,15 +326,60 @@ void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> sy
 	uint64 bitset = uint64{0};
 	((bitset |= (uint64{1} << (63 - meta::IndexOf<ComponentListT, TypeListT>))), ...);
 
-	for(uint64 i = uint64{0}; i < m_entityCount; i++)
+	if(m_entityCount > 5000)  // should multithreading be applied
 	{
-		if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+		// constructing function which will be executed by parallel threads
+		auto execute = [&bitset, system, this](const uint64 start, const uint64 stop)
 		{
-			// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+			for(uint64 i = start; i < stop; i++)
+			{
+				if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+				{
+					// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+					std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+				}
+			}
+		};
+
+		// we are splitting indices between threads to make this function more efficient
+		// ex.:
+		// batch = entity_count / thread_count
+		// start_index = i * batch
+		// stop_index = (i + 1) * batch - 1
+		// ex. batch = 3
+		// thread(i): execute(start_index, stop_index)
+		// thread(0): execute(0, 2)
+		// thread(1): execute(3, 5)
+		// thread(11): execute(33, 35)
+		auto thread_number = std::thread::hardware_concurrency() * 2;  // number of threads recommended
+		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
+		std::vector<std::thread> threads;
+		for(auto i = 0u; i < thread_number; i++)
+		{
+			threads.push_back(std::thread(
+				execute,
+				std::lround(i * batch),  // start
+				std::lround((i + 1) * batch - 1)));  // stop
+		}
+		for(auto &th : threads)
+		{
+			th.join();
 		}
 	}
-}
+	else  // there are too few entities to have multithreading more performant
+	{
+		// using OpenMP
+		#pragma omp parallel for
+		for(uint64 i = uint64{0}; i < m_entityCount; i++)
+		{
+			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+			{
+				// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+				std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+			}
+		}  // for
+	}  // else
+}  // method
 
 template <typename TypeListT>
 template <typename... ComponentListT>
@@ -340,15 +389,51 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 	uint64 bitset = uint64{0};
 	((bitset |= (uint64{1} << (63 - meta::IndexOf<ComponentListT, TypeListT>))), ...);
 
-	for(uint64 i = uint64{0}; i < m_entityCount; i++)
+	if(m_entityCount > 5000)  // should multithreading be applied
 	{
-		if((bitset & m_entityComponents.at(i)) == bitset)  // if tested entity has requested components
+		// constructing function which will be executed by parallel threads
+		auto execute = [&bitset, system, this](const uint64 start, const uint64 stop)
 		{
-			// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-			std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer.at(i)));
+			for(uint64 i = start; i < stop; i++)
+			{
+				if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+				{
+					// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+					std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+				}
+			}
+		};
+
+		// description in void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
+		auto thread_number = std::thread::hardware_concurrency() * 2;  // number of threads recommended
+		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
+		std::vector<std::thread> threads;
+		for(auto i = 0u; i < thread_number; i++)
+		{
+			threads.push_back(std::thread(
+				execute,
+				std::lround(i * batch),  // start
+				std::lround((i + 1) * batch - 1)));  // stop
+		}
+		for(auto &th : threads)
+		{
+			th.join();
 		}
 	}
-}
+	else  // there are too few entities to have multithreading more performant
+	{
+		// using OpenMP
+		#pragma omp parallel for
+		for(uint64 i = uint64{0}; i < m_entityCount; i++)
+		{
+			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+			{
+				// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+				std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+			}
+		}  // for
+	}  // else
+}  // method
 
 // PRIVATE
 template <typename TypeListT>

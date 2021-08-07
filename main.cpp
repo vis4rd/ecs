@@ -58,14 +58,15 @@ void test_fun3(char &c)
 
 float measure_time(bool &&suppressed = false)
 {
+    ecs::uint64 count = 10000;
     auto clock = std::chrono::high_resolution_clock::now();
 
     using CP = ecs::meta::ComponentPool<int, float, char, C3, C4, C5, C6, C7, C8, C9,
         D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
         E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>;
 
-    ecs::Manager<CP> manager;
-    for(ecs::uint32 i = 0; i < ecs::uint32{1000}; i++)
+    ecs::Manager<CP> manager(count);
+    for(ecs::uint64 i = 0; i < ecs::uint64{count}; i++)
     {
         manager.addEntity<30>(ecs::uint64{0xFFFFFFFFFFFFFFFF}, F_ALIVE);
     }
