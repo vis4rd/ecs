@@ -15,6 +15,8 @@ public:
 	const ComponentT &operator()() const;
 	ComponentT &operator()();
 	const uint64 &eID() const;
+	const ComponentT &eComponent() const;
+	ComponentT &eComponent();
 	void printType() const;
 
 private:
@@ -48,6 +50,18 @@ template <typename ComponentT>
 const uint64 &ComponentWrapper<ComponentT>::eID() const
 {
 	return m_entityID;
+}
+
+template <typename ComponentT>
+const ComponentT &ComponentWrapper<ComponentT>::eComponent() const
+{
+	return m_component;
+}
+
+template <typename ComponentT>
+ComponentT &ComponentWrapper<ComponentT>::eComponent()
+{
+	return m_component;
 }
 
 template <typename ComponentT>
