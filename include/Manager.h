@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Root.h"
-#include "Component.h"
 #include "ComponentBuffer.h"
 
 namespace ecs

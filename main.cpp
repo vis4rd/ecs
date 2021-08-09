@@ -1,7 +1,4 @@
-#include <iostream>
-#include "include/Component.h"
 #include "include/Manager.h"
-#include "include/ComponentBuffer.h"
 
 struct C0{};
 struct C1{};
