@@ -22,8 +22,7 @@ Now run the program with:
 ```bash
 $ ../bin/ECS 1
 ```
-<br>
 The program consists of the ECS implementation and performance test. Generally, it is recommended to compile it with `Release` flag, since compiler does some aggresive optimizations. Besides that, the test is also (sort of) checking cache friendliness. To perform a complete performance analysis, run the program without any parameters.<br>
 <br>
 ## License
-To be added.
+This project is licensed under MIT, a free and open-source license. For more information, please see the [license file](LICENSE.md "LICENCE.md").
