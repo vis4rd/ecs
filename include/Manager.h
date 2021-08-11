@@ -137,7 +137,7 @@ public:
 	 *   recursively, but on the other hand it is not required to do so (at cost of performance).
 	 */
 	template <uint16 ComponentCount = uint16{64}>
-	void addEntity(const uint64 components, const uint64 flags);
+	const uint64 &addEntity(const uint64 components, const uint64 flags);
 
 	/**
 	 * @brief Removes entities from the buffer.

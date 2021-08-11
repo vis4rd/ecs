@@ -99,7 +99,7 @@ const bool Manager<TypeListT>::checkComponent(const uint64 entity_id) const noex
 
 template <typename TypeListT>
 template <uint16 ComponentCount>
-void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
+const uint64 &Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 {
 	if(m_entityCount < m_maxEntityCount)
 	{
@@ -122,6 +122,7 @@ void Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 		std::cout << "[WARNING] Number of allocated entities has reached the cap," <<
 			" ignoring the new ones..." << std::endl;
 	}
+	return m_entityBuffer.back();
 }
 
 template <typename TypeListT>
