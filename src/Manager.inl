@@ -98,6 +98,12 @@ const bool Manager<TypeListT>::checkComponent(const uint64 entity_id) const noex
 }
 
 template <typename TypeListT>
+const std::vector<uint64> &Manager<TypeListT>::getEntityBuffer() const
+{
+	return m_entityBuffer;
+}
+
+template <typename TypeListT>
 template <uint16 ComponentCount>
 const uint64 &Manager<TypeListT>::addEntity(const uint64 components, const uint64 flags)
 {
@@ -299,7 +305,7 @@ void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> &s
 		// thread(0): execute(0, 2)
 		// thread(1): execute(3, 5)
 		// thread(11): execute(33, 35)
-		auto thread_number = std::thread::hardware_concurrency() * 2;  // number of threads recommended
+		auto thread_number = std::thread::hardware_concurrency() ;  // number of threads recommended
 		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
 		std::vector<std::thread> threads;
 		for(auto i = 0u; i < thread_number; i++)
@@ -351,7 +357,7 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 		};
 
 		// description in void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
-		auto thread_number = std::thread::hardware_concurrency() * 2;  // number of threads recommended
+		auto thread_number = std::thread::hardware_concurrency();  // number of threads recommended
 		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
 		std::vector<std::thread> threads;
 		for(auto i = 0u; i < thread_number; i++)

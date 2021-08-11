@@ -128,6 +128,12 @@ public:
 	const bool checkComponent(const uint64 entity_id) const noexcept;
 
 	/**
+	 * @brief Gets the vector of entity ids.
+	 * @return The entity buffer.
+	 */
+	const std::vector<uint64> &getEntityBuffer() const;
+
+	/**
 	 * @brief Adds a new entity to the buffer.
 	 * @param components The bitset of components, where every component has it's own bitwise position.
 	 * @param flags The bitset of flags attached to entity, where every flag has it's own bitwise position.
