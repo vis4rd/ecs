@@ -225,7 +225,6 @@ void Manager<TypeListT>::setFlag(const uint64 flagBit, const uint64 entity_id, c
 template <typename TypeListT>
 void Manager<TypeListT>::setFlagsForAll(const uint64 flagBit, const bool value)
 {
-	#pragma omp parallel for
 	for(auto fl = m_entityFlags.begin(); fl != m_entityFlags.end(); fl++)
 	{
 		(*fl) ^= (-value ^ (*fl)) & flagBit;  // sets the flagBit bit to value
@@ -251,7 +250,7 @@ std::vector<uint64> &Manager<TypeListT>::getFlagBuffer()
 // 	ecs::Manager<CPool> manager;  // holds only one component - int
 // 	manager.addEntity<1>(ecs::uint64{1} << 63, ecs::uint64{0});
 // 	// The second argument are flags, we pass 0 here to simplify the example.
-// 	// Notice that the first (and only) component has the left-most bit position.
+// 	// Notice that the first (and only) component has the right-most bit position.
 // 
 // 	manager.applySystem<int>(fun);
 //  
@@ -264,18 +263,15 @@ std::vector<uint64> &Manager<TypeListT>::getFlagBuffer()
 // System's arguments have to be references, otherwise the value will be copied and the whole
 //   operation would not make any sense.
 // 
-// The method is split in two. Each part is being chosen depending on number of entities
-//   in the buffer. If there are less than 5000, this method is making use of OpenMP pragma
-//   for parallel for loops. Otherwise, there are std::threads used instead, since with such a high
-//   entity quantity it's theoretically faster than #pragma omp parallel for.
+// If the entity number is reaching over 5000, this method will use parallel threads.
 
 template <typename TypeListT>
 template <typename... ComponentListT>
-void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
+void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> &system)
 {
 	// creating a bitset which will be compared with m_entityComponents vector
 	uint64 bitset = uint64{0};
-	((bitset |= (uint64{1} << (63 - meta::IndexOf<ComponentListT, TypeListT>))), ...);
+	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
 
 	if(m_entityCount > 5000)  // should multithreading be applied
 	{
@@ -319,8 +315,6 @@ void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> sy
 	}
 	else  // there are too few entities to have multithreading more performant
 	{
-		// using OpenMP
-		#pragma omp parallel for
 		for(uint64 i = uint64{0}; i < m_entityCount; i++)
 		{
 			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
@@ -338,7 +332,7 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 {
 	// creating a bitset which will be compared with m_entityComponents vector
 	uint64 bitset = uint64{0};
-	((bitset |= (uint64{1} << (63 - meta::IndexOf<ComponentListT, TypeListT>))), ...);
+	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
 
 	if(m_entityCount > 5000)  // should multithreading be applied
 	{
@@ -373,8 +367,6 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 	}
 	else  // there are too few entities to have multithreading more performant
 	{
-		// using OpenMP
-		#pragma omp parallel for
 		for(uint64 i = uint64{0}; i < m_entityCount; i++)
 		{
 			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components

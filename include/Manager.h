@@ -245,13 +245,10 @@ public:
 	 * System's arguments have to be references, otherwise the value will be copied and the whole
 	 *   operation would not make any sense.
 	 * 
-	 * The method is split in two. Each part is chosen depending on number of entities in the
-	 *   buffer. If there are less than 5000, this method is making use of OpenMP pragma for
-	 *   parallel for loops. Otherwise, there are std::threads used instead, since with such a high
-	 *   entity quantity it's theoretically faster than #pragma omp parallel for.
+	 * If the entity number is reaching over 5000, this method will use parallel threads.
 	 */
 	template <typename... ComponentListT>
-	void applySystem(std::function<void(ComponentListT& ...)> system);
+	void applySystem(std::function<void(ComponentListT& ...)> &system);
 
 	/**
 	 * @brief Applies passed function/functor/lambda (ECS system) to all entities matching required conditions.
