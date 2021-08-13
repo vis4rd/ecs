@@ -127,11 +127,8 @@ public:
 	 * @return If both component index and entity id are valid, the requested instance of component
 	 *         is returned wrapped in std::optional object.
 	 *
-	 * @note If there's no component with given entity id, the returned value is std::nullopt
-	 *       instead.
-	 * 
-	 * @warning Although this method is marked noexcept, it still can terminate the program when
-	 *          given decimalIndex is invalid (out of range).
+	 * @note If there's no component with given entity id or type index is invalid, the returned
+	 *       value is std::nullopt instead.
 	 */
 	template <uint16 decimalIndex>
 	const std::optional<meta::TypeAt<decimalIndex, m_tPool>> getComponentByIndex(const uint64 entity_id) const noexcept;
@@ -143,11 +140,8 @@ public:
 	 * @return If both component index and entity id are valid, the requested instance of component
 	 *         is returned wrapped in std::optional object.
 	 *
-	 * @note If there's no component with given entity id, the returned value is std::nullopt
-	 *       instead.
-	 * 
-	 * @warning Although this method is marked noexcept, it still can terminate the program when
-	 *          given decimalIndex is invalid (out of range).
+	 * @note If there's no component with given entity id or type index is invalid, the returned
+	 *       value is std::nullopt instead.
 	 * 
 	 * This is a non-const version of this method provided for convenience.
 	 */

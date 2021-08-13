@@ -136,15 +136,23 @@ template <typename... Typepack>
 template <uint16 decimalIndex>
 const std::optional<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>> ComponentBuffer<meta::TypeList<Typepack...>>::getComponentByIndex(const uint64 entity_id) const noexcept
 {
-	auto &vec = std::get<decimalIndex>(m_cBuffer);
-	for(auto &c : vec)
+	if constexpr(meta::DoesTypeExist<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>, m_tPool>)  // type does not exist in component pool
 	{
-		if(c.eID() == entity_id)
+		auto &vec = std::get<decimalIndex>(m_cBuffer);
+		for(auto &c : vec)
 		{
-			return c();
+			if(c.eID() == entity_id)
+			{
+				return c();
+			}
 		}
+		return std::nullopt;
 	}
-	return std::nullopt;
+	else
+	{
+		std::cout << "[WARNING] const std::optional<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>> ComponentBuffer<meta::TypeList<Typepack...>>::getComponentByIndex(const uint64 entity_id) const noexcept: There's no sych type in the component pool." << std::endl;
+		return std::nullopt;
+	}
 }
 
 // ################################################################################################
@@ -154,15 +162,23 @@ template <typename... Typepack>
 template <uint16 decimalIndex>
 std::optional<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>> ComponentBuffer<meta::TypeList<Typepack...>>::getComponentByIndex(const uint64 entity_id) noexcept
 {
-	auto &vec = std::get<decimalIndex>(m_cBuffer);
-	for(auto &c : vec)
+	if constexpr(meta::DoesTypeExist<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>, m_tPool>)  // type does not exist in component pool
 	{
-		if(c.eID() == entity_id)
+		auto &vec = std::get<decimalIndex>(m_cBuffer);
+		for(auto &c : vec)
 		{
-			return c();
+			if(c.eID() == entity_id)
+			{
+				return c();
+			}
 		}
+		return std::nullopt;
 	}
-	return std::nullopt;
+	else
+	{
+		std::cout << "[WARNING] std::optional<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>> ComponentBuffer<meta::TypeList<Typepack...>>::getComponentByIndex(const uint64 entity_id) noexcept: There's no sych type in the component pool." << std::endl;
+		return std::nullopt;
+	}
 }
 
 // ################################################################################################
