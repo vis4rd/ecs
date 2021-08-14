@@ -121,7 +121,7 @@ inline std::thread &ThreadPool::getThread(const unsigned index)
 	return *m_threads.at(index);  // dereference from std::unique_ptr
 }
 
-inline const unsigned ThreadPool::size() const
+inline const unsigned ThreadPool::getThreadCount() const
 {
 	return static_cast<unsigned>(m_threads.size());
 }
@@ -189,7 +189,7 @@ inline void ThreadPool::halt(const bool finish_tasks)
 		}
 		m_haltFlag = true;
 
-		for(unsigned index = 0u, count = this->size(); index < count; index++)
+		for(unsigned index = 0u, count = this->getThreadCount(); index < count; index++)
 		{
 			*(m_flags[index]) = true;  // stop all threads, dereference from std::shared_ptr
 		}

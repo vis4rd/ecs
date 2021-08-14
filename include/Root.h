@@ -5,6 +5,12 @@
 #include <exception>
 #include <thread>
 #include <omp.h>
+#include <future>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+#include <algorithm>
+#include <numeric>
 
 #include <set>
 #include <unordered_set>
@@ -13,15 +19,13 @@
 #include <string>
 #include <string_view>
 #include <sstream>
+#include <queue>
 #include <vector>
 #include <list>
 #include <memory>
 #include <optional>
 #include <functional>
 #include <bitset>
-#include <chrono>
-#include <algorithm>
-#include <numeric>
 
 #include <cstdlib>
 #include <ctime>

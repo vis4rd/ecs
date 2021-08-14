@@ -55,7 +55,7 @@ void test_fun3(char &c)
 
 float measure_time(bool &&suppressed = false)
 {
-    ecs::uint64 count = 1000;
+    ecs::uint64 count = 301;
     auto clock = std::chrono::high_resolution_clock::now();
 
     using CP = ecs::meta::ComponentPool<

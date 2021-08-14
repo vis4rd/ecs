@@ -7,9 +7,11 @@ uint64 Manager<TypeListT>::m_nextEntityID = uint64{0};
 template <typename TypeListT>
 Manager<TypeListT>::Manager(const uint64 max_entity_count)
 :
+m_threadPool(4),
 m_flagCount(uint16{0}),
 m_maxEntityCount(max_entity_count),
 m_entityCount(uint64{0})
+
 {
 	if(m_entityBuffer.capacity() < m_maxEntityCount)
 	{
@@ -280,7 +282,7 @@ void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> &s
 	uint64 bitset = uint64{0};
 	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
 
-	if(m_entityCount > 5000)  // should multithreading be applied
+	if(m_entityCount > 300)  // should multithreading be applied
 	{
 		// constructing function which will be executed by parallel threads
 		auto execute = [&bitset, system, this](const uint64 start, const uint64 stop)
@@ -305,19 +307,14 @@ void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> &s
 		// thread(0): execute(0, 2)
 		// thread(1): execute(3, 5)
 		// thread(11): execute(33, 35)
-		auto thread_number = std::thread::hardware_concurrency() ;  // number of threads recommended
+		auto thread_number = m_threadPool.getThreadCount();  // number of threads recommended
 		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
-		std::vector<std::thread> threads;
 		for(auto i = 0u; i < thread_number; i++)
 		{
-			threads.push_back(std::thread(
+			m_threadPool.addTask(
 				execute,
 				std::lround(i * batch),  // start
-				std::lround((i + 1) * batch - 1)));  // stop
-		}
-		for(auto &th : threads)
-		{
-			th.join();
+				std::lround((i + 1) * batch - 1));  // stop
 		}
 	}
 	else  // there are too few entities to have multithreading more performant
@@ -341,7 +338,7 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 	uint64 bitset = uint64{0};
 	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
 
-	if(m_entityCount > 5000)  // should multithreading be applied
+	if(m_entityCount > 300)  // should multithreading be applied
 	{
 		// constructing function which will be executed by parallel threads
 		auto execute = [&bitset, system, this](const uint64 start, const uint64 stop)
@@ -357,19 +354,14 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 		};
 
 		// description in void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
-		auto thread_number = std::thread::hardware_concurrency();  // number of threads recommended
+		auto thread_number = m_threadPool.getThreadCount();  // number of threads recommended
 		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
-		std::vector<std::thread> threads;
 		for(auto i = 0u; i < thread_number; i++)
 		{
-			threads.push_back(std::thread(
+			m_threadPool.addTask(
 				execute,
 				std::lround(i * batch),  // start
-				std::lround((i + 1) * batch - 1)));  // stop
-		}
-		for(auto &th : threads)
-		{
-			th.join();
+				std::lround((i + 1) * batch - 1));  // stop
 		}
 	}
 	else  // there are too few entities to have multithreading more performant

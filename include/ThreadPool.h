@@ -1,13 +1,6 @@
 #pragma once
 
-#include <functional>
-#include <future>
-#include <mutex>
-#include <thread>
-#include <vector>
-#include <condition_variable>
-#include <memory>
-#include <queue>
+#include "Root.h"
 
 #define NODISCARD_REASON "The returned value is not used. Calling this method is unnecessary."
 #define NDMESSAGE [[nodiscard(NODISCARD_REASON)]]
@@ -47,7 +40,7 @@ public:
 
 	std::thread &getThread(const unsigned id);
 	
-	NDMESSAGE const unsigned size() const;
+	NDMESSAGE const unsigned getThreadCount() const;
 	NDMESSAGE const unsigned idleThreadCount() const;
 	NDMESSAGE const unsigned pendingTasksCount() const;
 	void resize(const unsigned thread_count);

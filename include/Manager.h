@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentBuffer.h"
+#include "ThreadPool.h"
 
 namespace ecs
 {
@@ -284,7 +285,9 @@ private:
 	std::vector<uint64> m_entityBuffer;            /**< Stores all entities. */
 	std::vector<uint64> m_entityFlags;             /**< Stores flags of all entities. */
 	std::vector<uint64> m_entityComponents;        /**< Stores component bitsets of all entities. */
+
 	ComponentBuffer<TypeListT> m_componentBuffer;  /**< Stores all components. */
+	ThreadPool m_threadPool;
 
 	static uint64 m_nextEntityID;  /**< Used and incremented in every case when entity is added to the buffer */
 	uint16 m_flagCount;            /**< Number of existing entity flags. */
