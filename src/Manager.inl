@@ -7,7 +7,7 @@ uint64 Manager<TypeListT>::m_nextEntityID = uint64{0};
 template <typename TypeListT>
 Manager<TypeListT>::Manager(const uint64 max_entity_count)
 :
-m_threadPool(4),
+m_threadPool(std::thread::hardware_concurrency()),
 m_flagCount(uint16{0}),
 m_maxEntityCount(max_entity_count),
 m_entityCount(uint64{0})
@@ -97,6 +97,12 @@ const bool Manager<TypeListT>::checkComponent(const uint64 entity_id) const noex
 		}
 	}
 	return false;
+}
+
+template <typename TypeListT>
+ThreadPool &Manager<TypeListT>::getThreadPool()
+{
+	return m_threadPool;
 }
 
 template <typename TypeListT>

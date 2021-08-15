@@ -128,6 +128,8 @@ public:
 	template <uint16 TypeIndex>
 	const bool checkComponent(const uint64 entity_id) const noexcept;
 
+	ThreadPool &getThreadPool();
+
 	/**
 	 * @brief Gets the vector of entity ids.
 	 * @return The entity buffer.
