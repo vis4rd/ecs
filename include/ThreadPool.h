@@ -36,6 +36,10 @@ class ThreadPool
 {
 public:
 	ThreadPool(const unsigned thread_count = 2u);
+	ThreadPool(const ThreadPool &) = delete;
+    ThreadPool(ThreadPool &&) = delete;
+    ThreadPool &operator=(const ThreadPool &) = delete;
+    ThreadPool &operator=(ThreadPool &&) = delete;
 	virtual ~ThreadPool();
 
 	std::thread &getThread(const unsigned id);
