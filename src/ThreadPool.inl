@@ -15,14 +15,14 @@ inline const bool SafeQueue<T>::push(const T &value)
 }
 
 template <typename T>
-inline const bool SafeQueue<T>::pop(T & v)
+inline const bool SafeQueue<T>::pop(T & value)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
 	if(m_queue.empty())
 	{
 		return false;
 	}
-	v = m_queue.front();
+	value = m_queue.front();
 	m_queue.pop();
 	return true;
 }
@@ -101,7 +101,7 @@ inline const T &SafeQueue<T>::back() const
 ThreadPool::ThreadPool(const unsigned thread_count)
 :
 m_threads(),
-m_flags(),
+m_abortFlags(),
 m_queue(),
 m_finishedFlag(false),
 m_haltFlag(false),
@@ -121,7 +121,7 @@ inline std::thread &ThreadPool::getThread(const unsigned index)
 	return *m_threads.at(index);  // dereference from std::unique_ptr
 }
 
-inline const unsigned ThreadPool::getThreadCount() const
+inline const unsigned ThreadPool::totalThreadCount() const
 {
 	return static_cast<unsigned>(m_threads.size());
 }
@@ -145,11 +145,11 @@ inline void ThreadPool::resize(const unsigned thread_count)
 		{
 			//  it's safe to resize as threads (and flags) are added, not removed
 			m_threads.resize(thread_count);
-			m_flags.resize(thread_count);
+			m_abortFlags.resize(thread_count);
 
 			for(unsigned index = old_thread_count; index < thread_count; index++)
 			{
-				m_flags[index] = std::make_shared<std::atomic<bool>>(false);
+				m_abortFlags[index] = std::make_shared<std::atomic<bool>>(false);
 				this->setupThread(index);
 			}
 		}
@@ -158,7 +158,7 @@ inline void ThreadPool::resize(const unsigned thread_count)
 			//  finish extra threads as they are to be removed
 			for(unsigned index = old_thread_count - 1u; index >= thread_count; index--)
 			{
-				*(m_flags[index]) = true;
+				*(m_abortFlags[index]) = true;
 				m_threads[index]->detach();
 			}
 
@@ -170,7 +170,7 @@ inline void ThreadPool::resize(const unsigned thread_count)
 			//  threads are detached so it's safe to remove them
 			//  flags are safe to remove as well, because threads hold copies of shared_ptr
 			m_threads.resize(thread_count);
-			m_flags.resize(thread_count);
+			m_abortFlags.resize(thread_count);
 		}
 	}
 }
@@ -189,9 +189,9 @@ inline void ThreadPool::halt(const bool finish_tasks)
 		}
 		m_haltFlag = true;
 
-		for(unsigned index = 0u, count = this->getThreadCount(); index < count; index++)
+		for(unsigned index = 0u, count = this->totalThreadCount(); index < count; index++)
 		{
-			*(m_flags[index]) = true;  // stop all threads, dereference from std::shared_ptr
+			*(m_abortFlags[index]) = true;  // stop all threads, dereference from std::shared_ptr
 		}
 		this->clearQueue();
 	}
@@ -221,7 +221,7 @@ inline void ThreadPool::halt(const bool finish_tasks)
 	//   deleted by the threads, therefore they must be deleted here
 	this->clearQueue();
 	m_threads.clear();
-	m_flags.clear();
+	m_abortFlags.clear();
 }
 
 void ThreadPool::restart()
@@ -365,7 +365,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func) -> std::future<decltype(
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_flags.at(id)))
+			while(!m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)(id);
@@ -397,7 +397,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func) -> std::future<decltype(
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_flags.at(id)))
+			while(!m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)();
@@ -431,7 +431,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func, Args&& ...arguments) -> 
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_flags.at(id)))
+			while(!m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)(id);
@@ -465,7 +465,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func, Args&& ...arguments) -> 
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_flags.at(id)))
+			while(!m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)();
@@ -492,7 +492,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func, Args&& ...arguments) -> 
 // 3) A global halt flag is set to true, then only idle threads terminate.
 inline void ThreadPool::setupThread(const int index)
 {
-	std::shared_ptr<std::atomic<bool>> flag(m_flags[index]);  // a copy of shared ptr to the flag
+	std::shared_ptr<std::atomic<bool>> flag(m_abortFlags[index]);  // a copy of shared ptr to the flag
 	auto task_wrapper = [this, index, flag]()
 	{
 		std::atomic<bool> &flag_ref = *flag;
