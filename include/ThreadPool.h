@@ -112,7 +112,7 @@ public:
     ThreadPool(ThreadPool &&) = delete;					/**< Deleted move constructor. */
     ThreadPool &operator=(const ThreadPool &) = delete;	/**< Deleted copy assignment. */
     ThreadPool &operator=(ThreadPool &&) = delete;		/**< Deleted move assignment. */
-	virtual ~ThreadPool();	/**< The virtual destructor, which calls halt(true). */
+	virtual ~ThreadPool();	/**< The virtual destructor, which calls halt(true) and haltInfinite(). */
 
 	/**
 	 * @brief Gets the thread instance from the pool.
@@ -151,15 +151,32 @@ public:
 
 	/**
 	 * @brief Stops all threads.
-	 * @param finish_tasks If true, all threads clear the queue before stopping, else they finish
-	 *                       immediately.
+	 * @param finish_tasks If true, all threads clear the queue before stopping, else they finish immediately.
+	 *
+	 * This member function also stops all infinite tasks.
 	 */
 	void halt(const bool finish_tasks = false);
 
 	/**
+	 * @brief Stops all threads with infinite tasks.
+	 * 
+	 * The behaviour is not the same as in halt() member function, because this one only halts
+	 *   currently running infinite tasks. Status of queued tasks availability is not changed
+	 *   (besides that all threads which were computing infinite tasks are now free to empty the
+	 *   queue).
+	 * This method DOES NOT halt any threads for good, it only breaks the while(true) loops in
+	 *   infinite tasks.
+	 * It is also called by the ThreadPool destructor.
+	 *
+	 * @warning In order to add a new infinite task to the queue, ThreadPool has to be restarted
+	 *          with restart() member function.
+	 */
+	void haltInfinite();
+
+	/**
 	 * @brief Restarts the thread pool.
 	 * 
-	 * In fact, this method calls halt(true) and sets all flags to their initial values.
+	 * Calls halt(true) and sets all flags to their initial values.
 	 */
 	void restart();
 
@@ -270,7 +287,7 @@ public:
 	 *
 	 * The difference between addTask() and addInfiniteTask() is that in the latter the function's
 	 *   body is nested inside a while(true) loop. This means that the function will be constantly
-	 *   executed until halt(false) is called or threads abort flag is equal to true.
+	 *   executed until halt() or haltInfinite() is called.
 	 *
 	 * Example:
 	 * @code
@@ -289,9 +306,6 @@ public:
 	 * // ...
 	 * @endcode
 	 *
-	 * Note that calling halt(true) will not stop the infinite task, which means that ThreadPool
-	 *   destructor will not do it either. If the infinite task is running during program
-	 *   termination, exception will be thrown.
 	 */
 	template <typename Functor>
 	auto addInfiniteTask(Functor &&func) -> std::future<decltype(func(0))>;
@@ -307,7 +321,7 @@ public:
 	 *
 	 * The difference between addTask() and addInfiniteTask() is that in the latter the function's
 	 *   body is nested inside a while(true) loop. This means that the function will be constantly
-	 *   executed until halt(false) is called or threads abort flag is equal to true.
+	 *   executed until halt() or haltInfinite() is called.
 	 *
 	 * Example:
 	 * @code
@@ -325,9 +339,6 @@ public:
 	 * // ...
 	 * @endcode
 	 *
-	 * Note that calling halt(true) will not stop the infinite task, which means that ThreadPool
-	 *   destructor will not do it either. If the infinite task is running during program
-	 *   termination, exception will be thrown.
 	 */
 	template <typename Functor>
 	auto addInfiniteTask(Functor &&func) -> std::future<decltype(func())>;
@@ -345,7 +356,7 @@ public:
 	 *
 	 * The difference between addTask() and addInfiniteTask() is that in the latter the function's
 	 *   body is nested inside a while(true) loop. This means that the function will be constantly
-	 *   executed until halt(false) is called or threads abort flag is equal to true.
+	 *   executed until halt() or haltInfinite() is called.
 	 *
 	 * Example:
 	 * @code
@@ -364,9 +375,6 @@ public:
 	 * // ...
 	 * @endcode
 	 *
-	 * Note that calling halt(true) will not stop the infinite task, which means that ThreadPool
-	 *   destructor will not do it either. If the infinite task is running during program
-	 *   termination, exception will be thrown.
 	 */
 	template <typename Functor, typename... Args>
 	auto addInfiniteTask(Functor &&func, Args&& ...arguments) -> std::future<decltype(func(0, arguments...))>;
@@ -384,7 +392,7 @@ public:
 	 *
 	 * The difference between addTask() and addInfiniteTask() is that in the latter the function's
 	 *   body is nested inside a while(true) loop. This means that the function will be constantly
-	 *   executed until halt(false) is called or threads abort flag is equal to true.
+	 *   executed until halt() or haltInfinite() is called.
 	 *
 	 * Example:
 	 * @code
@@ -402,9 +410,6 @@ public:
 	 * // ...
 	 * @endcode
 	 *
-	 * Note that calling halt(true) will not stop the infinite task, which means that ThreadPool
-	 *   destructor will not do it either. If the infinite task is running during program
-	 *   termination, exception will be thrown.
 	 */
 	template <typename Functor, typename... Args>
 	auto addInfiniteTask(Functor &&func, Args&& ...arguments) -> std::future<decltype(func(arguments...))>;
@@ -431,6 +436,7 @@ private:
 	impl::SafeQueue<std::function<void(const int)> *> m_queue;  /**< The queue of tasks assigned by the user. */
 	std::atomic<bool> m_finishedFlag;  /**< The flag describing if all tasks have benn completed. */
 	std::atomic<bool> m_haltFlag;  /**< The global flag used for hard halting computation of all threads. */
+	std::atomic<bool> m_infHaltFlag;  /**< The global flag used for breaking infinite tasks. */
 	std::atomic<unsigned> m_waitingThreadsCount;  /**< The number of idle threads. */
 	std::atomic<unsigned> m_pendingTasksCount;  /**< The number of pending tasks in the queue. */
 

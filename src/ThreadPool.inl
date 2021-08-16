@@ -105,6 +105,7 @@ m_abortFlags(),
 m_queue(),
 m_finishedFlag(false),
 m_haltFlag(false),
+m_infHaltFlag(false),
 m_waitingThreadsCount(0u),
 m_pendingTasksCount(0u)
 {
@@ -114,6 +115,7 @@ m_pendingTasksCount(0u)
 ThreadPool::~ThreadPool()
 {
 	this->halt(true);  // terminate immediately, but first wait for threads to finish their tasks
+	this->haltInfinite();
 }
 
 inline std::thread &ThreadPool::getThread(const unsigned index)
@@ -203,7 +205,8 @@ inline void ThreadPool::halt(const bool finish_tasks)
 		}
 		m_finishedFlag = true;  // all waiting threads should finish their tasks
 	}
-
+	this->haltInfinite();
+	
 	{  // safety scope for std::unique_lock
 		std::unique_lock<std::mutex> lock(m_mutex);
 		m_cond.notify_all();  // sync all waiting threads
@@ -224,11 +227,17 @@ inline void ThreadPool::halt(const bool finish_tasks)
 	m_abortFlags.clear();
 }
 
+void ThreadPool::haltInfinite()
+{
+	m_infHaltFlag = true;
+}
+
 void ThreadPool::restart()
 {
 	this->halt(true);  // wait for threads to finish all queued tasks
 	m_finishedFlag = false;
 	m_haltFlag = false;
+	m_infHaltFlag = false;
 	m_waitingThreadsCount = 0u;
 	m_pendingTasksCount = 0u;
 }
@@ -365,7 +374,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func) -> std::future<decltype(
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_abortFlags.at(id)))
+			while(!m_infHaltFlag && !m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)(id);
@@ -397,7 +406,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func) -> std::future<decltype(
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_abortFlags.at(id)))
+			while(!m_infHaltFlag && !m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)();
@@ -431,7 +440,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func, Args&& ...arguments) -> 
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_abortFlags.at(id)))
+			while(!m_infHaltFlag && !m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)(id);
@@ -465,7 +474,7 @@ inline auto ThreadPool::addInfiniteTask(Functor &&func, Args&& ...arguments) -> 
 		auto task = new std::function<void(const int)>(
 		[package, this](const int id)
 		{
-			while(!m_haltFlag && !(*m_abortFlags.at(id)))
+			while(!m_infHaltFlag && !m_haltFlag && !(*m_abortFlags.at(id)))
 			{
 				package->reset();
 				(*package)();
