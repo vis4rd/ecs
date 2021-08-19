@@ -33,7 +33,7 @@ struct E9{};
 
 enum
 {
-    F_ALIVE = 1 << 0
+    F_ALIVE = ecs::uint64{1} << 0
 };
 
 void test_fun1(int &arg1)
@@ -50,17 +50,28 @@ void test_fun2(C9 &arg1)
 
 void test_fun3(char &c)
 {
-    c = 'd';
+    c = 'a' + rand() % ('z' - 'a');
 }
 
-template <typename List>
-float measure_time(ecs::Manager<List> &manager, const ecs::uint64 count, bool &&suppressed = false)
+void test_fun4(ecs::Interface &itf, float &f)
 {
-    auto clock = std::chrono::high_resolution_clock::now();
-    
-    for(ecs::uint64 i = 0; i < ecs::uint64{count}; i++)
+    std::cout << "Entity [ " << itf.index() << " ]: id( " << itf.id() << " ), flags( "
+        << itf.flags() << " ), components( " << itf.components() << " )"
+        << std::endl;
+}
+
+int main()
+{
+    ecs::uint64 ent_count = 10;
+    using CP = ecs::meta::ComponentPool<
+        int, float, char, C3, C4, C5, C6, C7, C8, C9,
+        D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
+        E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>;
+   auto &manager = ecs::Manager<CP>::getInstance(ent_count);
+
+    for(ecs::uint64 i = 0; i < ecs::uint64{ent_count}; i++)
     {
-        manager.template addEntity<30>(ecs::uint64{0xFFFFFFFFFFFFFFFF}, F_ALIVE);
+        manager.addEntity<30>(ecs::uint64{0xFFFFFFFFFFFFFFFF}, F_ALIVE);
     }
 
     // std::cout << manager.getFlag(F_ALIVE, 50) << std::endl;
@@ -83,40 +94,12 @@ float measure_time(ecs::Manager<List> &manager, const ecs::uint64 count, bool &&
     manager.template applySystem<C9>(test_fun2);
     manager.template applySystem<char>(test_fun3);
 
-    auto &thread_pool = manager.getThreadPool();
+    manager.template applySystem<float>(test_fun4);
+
+    manager.setFlag(F_ALIVE, 7, false);
+    manager.setFlag(F_ALIVE, 9, false);
+    std::cout << "Filtered entities: " << manager.deleteFilteredEntities(F_ALIVE, true);
 
     manager.deleteAllEntities();
-
-    auto clock2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(clock2 - clock);
-    static unsigned cycle;
-    if(!suppressed)
-        std::cout << "cycle (" << cycle++ << ") duration: " << duration.count()/1000.f << "ms" << std::endl;
-    return duration.count()/1000.f;
-}
-
-int main(int argc, char **argv)
-{
-    int cycle_count = (argc > 1) ? std::__cxx11::stoi(argv[1]) : 100;
-    ecs::uint64 ent_count = 301;
-    using CP = ecs::meta::ComponentPool<
-        int, float, char, C3, C4, C5, C6, C7, C8, C9,
-        D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
-        E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>;
-    ecs::Manager<CP> manager(ent_count);
-
-    std::vector<float> times;
-    for(int i = 0u; i < cycle_count; i++)
-    {
-        times.emplace_back(measure_time<CP>(manager, ent_count));
-    }
-    times.shrink_to_fit();
-    std::cout << std::endl;
-    std::cout << "average time: " << std::accumulate(times.begin(), times.end(), 0.f) / times.size() << "ms" << std::endl;
-    std::cout << "max: " << *std::max_element(times.begin(), times.end()) << "ms" << std::endl;
-    std::cout << "min: " << *std::min_element(times.begin(), times.end()) << "ms" << std::endl;
-
-    manager.deleteAllEntities();
-    
     return 0;
 }
