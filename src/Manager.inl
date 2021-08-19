@@ -1,9 +1,18 @@
+#line 2 "Manager.inl"
 namespace ecs
 {
 
 template <typename TypeListT>
 uint64 Manager<TypeListT>::m_nextEntityID = uint64{0};
 
+template <typename TypeListT>
+Manager<TypeListT> &Manager<TypeListT>::getInstance(const uint64 max_entity_count)
+{
+	static Manager<TypeListT> instance(max_entity_count);
+	return instance;
+}
+
+// private constructor
 template <typename TypeListT>
 Manager<TypeListT>::Manager(const uint64 max_entity_count)
 :
@@ -445,6 +454,60 @@ void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 		}  // for
 	}  // else
 }  // method
+
+template <typename TypeListT>
+template <typename... ComponentListT>
+void Manager<TypeListT>::applySystem(void (*system)(Interface &interface, ComponentListT& ...))
+{
+	// creating a bitset which will be compared with m_entityComponents vector
+	uint64 bitset = uint64{0};
+	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
+
+	auto wrapper = [&system](Interface &interface)
+	{
+		return std::bind(system, interface, std::placeholders::_1);
+	};
+
+	if(m_entityCount > 300)  // should multithreading be applied
+	{
+		// constructing function which will be executed by parallel threads
+		auto execute = [&bitset, wrapper, this](const uint64 start, const uint64 stop)
+		{
+			for(uint64 i = start; i < stop; i++)
+			{
+				Interface interface(m_entityBuffer[i], i, m_entityFlags[i], m_entityComponents[i]);
+				if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+				{
+					// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+					std::apply(wrapper(interface), this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+				}
+			}
+		};
+
+		// description in void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
+		auto thread_number = m_threadPool.totalThreadCount();  // number of threads recommended
+		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
+		for(auto i = 0u; i < thread_number; i++)
+		{
+			m_threadPool.addTask(
+				execute,
+				std::lround(i * batch),  // start
+				std::lround((i + 1) * batch - 1));  // stop
+		}
+	}
+	else  // there are too few entities to have multithreading more performant
+	{
+		for(uint64 i = uint64{0}; i < m_entityCount; i++)
+		{
+			Interface interface(m_entityBuffer[i], i, m_entityFlags[i], m_entityComponents[i]);
+			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+			{
+				// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
+				std::apply(wrapper(interface), this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
+			}
+		}  // for
+	}  // else
+}
 
 // PRIVATE
 template <typename TypeListT>

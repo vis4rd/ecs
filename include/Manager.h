@@ -2,9 +2,12 @@
 
 #include "ComponentBuffer.h"
 #include "ThreadPool.h"
+#include "Interface.h"
 
 namespace ecs
 {
+
+class Interface;  // predeclaration for friendship
 
 /**
  * Template class Manager
@@ -17,14 +20,20 @@ namespace ecs
 template <typename TypeListT>
 class Manager final
 {
+	friend class Interface;
 public:
 	/**
-	 * @brief Constructor
+	 * @brief Gets an instance of the Manager class.
 	 * @param max_entity_count The maximum entity count possible to add to the buffer.
-	 * 
-	 * Constructor reserves enough memory for all entities fitting in the max cap.
+	 * @tparam TypeListT The component pool (types of components) used by all entities in the buffer.
+	 * @return The instance of the Manager singleton class.
 	 */
-	Manager(const uint64 max_entity_count = uint64{1000});
+	static Manager<TypeListT> &getInstance(const uint64 max_entity_count = uint64{1000});
+
+	Manager(const Manager<TypeListT> &copy) = delete;
+	Manager(Manager<TypeListT> &&source) = delete;
+	Manager<TypeListT> &operator=(const Manager<TypeListT> &copy) = delete;
+	Manager<TypeListT> &operator=(Manager<TypeListT> &&source) = delete;
 	
 	/**
 	 * @brief Adds a component to the component buffer.
@@ -296,7 +305,45 @@ public:
 	template <typename... ComponentListT>
 	void applySystem(void (*system)(ComponentListT& ...));
 
+	/**
+	 * @brief Applies passed function/functor/lambda (ECS system) to all entities matching required conditions.
+	 * @param system The system working on/changing components' data.
+	 * @tparam ComponentListT The list of components required for the system to work properly.
+	 * 
+	 * This method provides additional possibility to pass to the system a so called 'Interface'.
+	 * Interface contains all useful information about the entity:
+	 *   1) index in the buffer;
+	 *   2) id of the entity;
+	 *   3) flags, which can be modified;
+	 *   4) component bitset.
+	 * 
+	 * Implementation of example system with interface:
+	 * @code
+	 * void ScreenFilterSystem(ecs::Interface &interface, SomeComponent &comp)
+	 * {
+	 *     if(((interface.flags() & ecs::uint64{1} << 13) >> 13) == true)  // if 13'th flag is set to 1
+	 *         comp.some_var = 1337;
+	 * }
+	 * @endcode
+	 *
+	 * Example above presents system which sets some_var to 1337 only if some flag of the entity is
+	 *   set to 1. This allows the user to additionally filter entities which will be modified by
+	 *   the system.
+	 * 
+	 * @see void applySystem(std::function<void(ComponentListT& ...)> system)
+	 */
+	template <typename... ComponentListT>
+	void applySystem(void (*system)(Interface &interface, ComponentListT& ...));
+
 private:
+	/**
+	 * @brief Constructor
+	 * @param max_entity_count The maximum entity count possible to add to the buffer.
+	 * 
+	 * Constructor reserves enough memory for all entities fitting in the max cap.
+	 */
+	Manager(const uint64 max_entity_count = uint64{1000});
+
 	/**
 	 * @brief Convenience helper method used in addEntity().
 	 */
