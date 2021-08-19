@@ -128,6 +128,10 @@ public:
 	template <uint16 TypeIndex>
 	const bool checkComponent(const uint64 entity_id) const noexcept;
 
+	/**
+	 * @brief Gets the ThreadPool instance of the Manager class.
+	 * @return A reference to the ThreadPool instance.
+	 */
 	ThreadPool &getThreadPool();
 
 	/**
@@ -172,6 +176,26 @@ public:
 	 * @warning This method also removes all flags and all components, because they are strictly bound to entities.
 	 */
 	void deleteAllEntities();
+
+	/**
+	 * @brief Removes all entities which have flags set to specific values.
+	 * @param bitset The bitset of flags, which filters entities not matching given values.
+	 * @param values States of flags chosen by the bitset to filter out entities.
+	 * @tparam States Boolean types of passed flag states.
+	 * @return The number of deleted entities.
+	 *
+	 * If the number of passed values is smaller than flags specified in the bitset, the rest of the
+	 *   states is by default set to false.
+	 * All extra passed states are ignored.
+	 *
+	 * Example:
+	 * @code
+	 * manager.deleteFilteredEntities(ecs::uint64{0b101}, true, false, false);  // the last "false" state is ignored
+	 * manager.deleteFilteredEntities(ecs::uint64{0b1101}, true)  // equal to (ecs::uint64{0b1101}, true, false, false)
+	 * @endcode
+	 */
+	template <typename... States>
+	const unsigned deleteFilteredEntities(uint64 &&bitset, States &&...values);
 
 	/**
 	 * @brief Gets the current number of existing entities in the buffer.

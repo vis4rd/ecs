@@ -197,6 +197,69 @@ void Manager<TypeListT>::deleteAllEntities()
 }
 
 template <typename TypeListT>
+template <typename... States>
+const unsigned Manager<TypeListT>::deleteFilteredEntities(uint64 &&bitset, States &&...values)
+{
+	constexpr auto values_count = sizeof... (values);
+	if constexpr((values_count > 0) && ((!std::is_integral<States>::value || !std::is_same<bool, States>::value) && ...))
+	{
+		throw std::logic_error("Given flag values are not of a boolean type.");
+	}
+	auto deleted_count = 0u;  // end result
+	
+	uint16 flag_count = 0;
+	auto bitset_copy = bitset;
+	while(bitset_copy)  // counting flags
+	{
+		flag_count += (bitset_copy & uint64{1});
+		bitset_copy >>= 1;
+	}  // after this loop, bitset_copy is expected to be completely empty
+
+	bool vals[flag_count] = {values...};  // states of flags stored in a helper array
+	auto iter = 0u;  // index of a checked entity
+	auto flag_count_copy = flag_count;  // copying a value of flag count for use inside the loop
+	bool to_delete = true;  // should particular entity be removed from the buffer?
+	for(auto &f : m_entityFlags)  // check for every entity
+	{
+		bitset_copy = bitset;
+		flag_count_copy = flag_count;
+		to_delete = true;
+		for(auto &val : vals)  // check for every state from parameter pack
+		{
+			for(uint64 bit = uint64{1} << 63; bit >= uint64{1}; bit >>= 1)
+			// for every bit in bitset
+			{
+				if((bitset_copy & bit) == bit)
+				{
+					// set the bit in bitset_copy to 0, so that it won't be found again
+					bitset_copy ^= (-0 ^ bitset_copy) & bit;
+					// the requested flag is found, so decrement the count
+					flag_count_copy--;
+					if((f & bit) != val)  // if the flag is not the same as value
+					{
+						to_delete = false;  // entity does not match
+						break;  // there's no need to check other bits in the bitset
+					}
+				}  // if
+			}  // for loop
+			if(!to_delete)  // if this entity does not match, then move to the next one
+			{
+				break;
+			}
+		}  // for range loop
+
+		// checked all flags with their respective values
+		if(to_delete)  // if all requested flags of the entity match with values
+		{
+			this->deleteEntity(m_entityBuffer.at(iter));
+			deleted_count++;
+		}
+		iter++;
+	}
+	return deleted_count;
+}
+
+template <typename TypeListT>
 const uint64 &Manager<TypeListT>::getCurrentEntityCount() const noexcept
 {
 	return m_entityCount;
