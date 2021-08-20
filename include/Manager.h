@@ -354,6 +354,8 @@ private:
 	 */
 	template <typename... ComponentListT> auto getMatchingComponentPack(const uint64 &entity_id);
 
+	void applySystemHelper(std::function<void(const uint64, const uint64)> scheduler);
+
 private:
 	std::vector<uint64> m_entityBuffer;            /**< Stores all entities. */
 	std::vector<uint64> m_entityFlags;             /**< Stores flags of all entities. */

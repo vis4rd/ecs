@@ -360,99 +360,27 @@ void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> &s
 	uint64 bitset = uint64{0};
 	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
 
-	if(m_entityCount > 300)  // should multithreading be applied
+	// constructing function which will be executed by parallel threads
+	auto execute = [&bitset, system, this](const uint64 start, const uint64 stop)
 	{
-		// constructing function which will be executed by parallel threads
-		auto execute = [&bitset, system, this](const uint64 start, const uint64 stop)
-		{
-			for(uint64 i = start; i < stop; i++)
-			{
-				if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
-				{
-					// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-					std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
-				}
-			}
-		};
-
-		// we are splitting indices between threads to make this function more efficient
-		// ex.:
-		// batch = entity_count / thread_count
-		// start_index = i * batch
-		// stop_index = (i + 1) * batch - 1
-		// ex. batch = 3
-		// thread(i): execute(start_index, stop_index)
-		// thread(0): execute(0, 2)
-		// thread(1): execute(3, 5)
-		// thread(11): execute(33, 35)
-		auto thread_number = m_threadPool.totalThreadCount();  // number of threads recommended
-		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
-		for(auto i = 0u; i < thread_number; i++)
-		{
-			m_threadPool.addTask(
-				execute,
-				std::lround(i * batch),  // start
-				std::lround((i + 1) * batch - 1));  // stop
-		}
-	}
-	else  // there are too few entities to have multithreading more performant
-	{
-		for(uint64 i = uint64{0}; i < m_entityCount; i++)
+		for(uint64 i = start; i < stop; i++)
 		{
 			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
 			{
 				// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
 				std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
 			}
-		}  // for
-	}  // else
-}  // method
+		}
+	};
+	this->applySystemHelper(execute);
+}
 
 template <typename TypeListT>
 template <typename... ComponentListT>
 void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...))
 {
-	// creating a bitset which will be compared with m_entityComponents vector
-	uint64 bitset = uint64{0};
-	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
-
-	if(m_entityCount > 300)  // should multithreading be applied
-	{
-		// constructing function which will be executed by parallel threads
-		auto execute = [&bitset, system, this](const uint64 start, const uint64 stop)
-		{
-			for(uint64 i = start; i < stop; i++)
-			{
-				if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
-				{
-					// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-					std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
-				}
-			}
-		};
-
-		// description in void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
-		auto thread_number = m_threadPool.totalThreadCount();  // number of threads recommended
-		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
-		for(auto i = 0u; i < thread_number; i++)
-		{
-			m_threadPool.addTask(
-				execute,
-				std::lround(i * batch),  // start
-				std::lround((i + 1) * batch - 1));  // stop
-		}
-	}
-	else  // there are too few entities to have multithreading more performant
-	{
-		for(uint64 i = uint64{0}; i < m_entityCount; i++)
-		{
-			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
-			{
-				// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-				std::apply(system, this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
-			}
-		}  // for
-	}  // else
+	std::function<void(ComponentListT& ...)> func = system;
+	this->applySystem<ComponentListT...>(func);
 }  // method
 
 template <typename TypeListT>
@@ -468,36 +396,10 @@ void Manager<TypeListT>::applySystem(void (*system)(Interface &interface, Compon
 		return std::bind(system, interface, std::placeholders::_1);
 	};
 
-	if(m_entityCount > 300)  // should multithreading be applied
+	// constructing function which will be executed by parallel threads
+	auto execute = [&bitset, wrapper, this](const uint64 start, const uint64 stop)
 	{
-		// constructing function which will be executed by parallel threads
-		auto execute = [&bitset, wrapper, this](const uint64 start, const uint64 stop)
-		{
-			for(uint64 i = start; i < stop; i++)
-			{
-				Interface interface(m_entityBuffer[i], i, m_entityFlags[i], m_entityComponents[i]);
-				if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
-				{
-					// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
-					std::apply(wrapper(interface), this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
-				}
-			}
-		};
-
-		// description in void Manager<TypeListT>::applySystem(std::function<void(ComponentListT& ...)> system)
-		auto thread_number = m_threadPool.totalThreadCount();  // number of threads recommended
-		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
-		for(auto i = 0u; i < thread_number; i++)
-		{
-			m_threadPool.addTask(
-				execute,
-				std::lround(i * batch),  // start
-				std::lround((i + 1) * batch - 1));  // stop
-		}
-	}
-	else  // there are too few entities to have multithreading more performant
-	{
-		for(uint64 i = uint64{0}; i < m_entityCount; i++)
+		for(uint64 i = start; i < stop; i++)
 		{
 			Interface interface(m_entityBuffer[i], i, m_entityFlags[i], m_entityComponents[i]);
 			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
@@ -505,8 +407,9 @@ void Manager<TypeListT>::applySystem(void (*system)(Interface &interface, Compon
 				// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
 				std::apply(wrapper(interface), this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
 			}
-		}  // for
-	}  // else
+		}
+	};
+	this->applySystemHelper(execute);
 }
 
 // PRIVATE
@@ -538,6 +441,37 @@ template <typename... ComponentListT>
 auto Manager<TypeListT>::getMatchingComponentPack(const uint64 &entity_id)
 {
 	return m_componentBuffer.template getComponentsMatching<ComponentListT...>(entity_id);
+}
+
+template <typename TypeListT>
+void Manager<TypeListT>::applySystemHelper(std::function<void(const uint64, const uint64)> scheduler)
+{
+	if(m_entityCount > 300)  // should multithreading be applied
+	{
+		// we are splitting indices between threads to make this function more efficient
+		// ex.:
+		// batch = entity_count / thread_count
+		// start_index = i * batch
+		// stop_index = (i + 1) * batch - 1
+		// ex. batch = 3
+		// thread(i): scheduler(start_index, stop_index)
+		// thread(0): scheduler(0, 2)
+		// thread(1): scheduler(3, 5)
+		// thread(11): scheduler(33, 35)
+		auto thread_number = m_threadPool.totalThreadCount();  // number of threads recommended
+		float batch = m_entityCount / static_cast<float>(thread_number);  // number of handled indices per thread
+		for(auto i = 0u; i < thread_number; i++)
+		{
+			m_threadPool.addTask(
+				scheduler,
+				std::lround(i * batch),  // start
+				std::lround((i + 1) * batch - 1));  // stop
+		}
+	}
+	else  // there are too few entities to have multithreading more performant
+	{
+		scheduler(uint64{0}, m_entityCount);
+	}
 }
 
 }  // namespace ecs
