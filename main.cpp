@@ -53,7 +53,7 @@ void test_fun3(char &c)
     c = 'a' + rand() % ('z' - 'a');
 }
 
-void test_fun4(ecs::Interface &itf, float &f)
+void test_fun4(ecs::Interface &itf)
 {
     std::cout << "Entity [ " << itf.index() << " ]: id( " << itf.id() << " ), flags( "
         << itf.flags() << " ), components( " << itf.components() << " )"
@@ -67,12 +67,18 @@ int main()
         int, float, char, C3, C4, C5, C6, C7, C8, C9,
         D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
         E0, E1, E2, E3, E4, E5, E6, E7, E8, E9>;
-   auto &manager = ecs::Manager<CP>::getInstance(ent_count);
+    auto &manager = ecs::Manager<CP>::getInstance(ent_count);
 
-    for(ecs::uint64 i = 0; i < ecs::uint64{ent_count}; i++)
-    {
-        manager.addEntity<30>(ecs::uint64{0xFFFFFFFFFFFFFFFF}, F_ALIVE);
-    }
+    manager.addEntity<30>(ecs::uint64{1}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{2}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{3}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{4}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{5}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{6}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{7}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{8}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{9}, F_ALIVE);
+    manager.addEntity<30>(ecs::uint64{10}, F_ALIVE);
 
     // std::cout << manager.getFlag(F_ALIVE, 50) << std::endl;
     // manager.setFlag(F_ALIVE, 50, false);
@@ -93,12 +99,14 @@ int main()
     manager.template applySystem<int>(test_fun1);
     manager.template applySystem<C9>(test_fun2);
     manager.template applySystem<char>(test_fun3);
-
-    manager.template applySystem<float>(test_fun4);
+    int woo = 1;
+    manager.template applySystem(test_fun1, woo);
 
     manager.setFlag(F_ALIVE, 7, false);
     manager.setFlag(F_ALIVE, 9, false);
-    std::cout << "Filtered entities: " << manager.deleteFilteredEntities(F_ALIVE, true);
+    manager.template applySystem(test_fun4);
+    std::cout << "Filtered entities: " << manager.deleteFilteredEntities(F_ALIVE, true) << std::endl;
+    manager.template applySystem(test_fun4);
 
     manager.deleteAllEntities();
     return 0;
