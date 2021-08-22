@@ -35,5 +35,7 @@
 dev/
 doc/*
 cmake/*
+build/*
 bin/*
 PreLoad.cmake
+.vscode/
