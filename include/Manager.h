@@ -319,7 +319,7 @@ public:
 	 * 
 	 * Implementation of example system with interface:
 	 * @code
-	 * void ScreenFilterSystem(ecs::Interface &interface, SomeComponent &comp)
+	 * void FilterSystem(ecs::Interface &interface, SomeComponent &comp)
 	 * {
 	 *     if(((interface.flags() & ecs::uint64{1} << 13) >> 13) == true)  // if 13'th flag is set to 1
 	 *         comp.some_var = 1337;
@@ -334,6 +334,56 @@ public:
 	 */
 	template <typename... ComponentListT>
 	void applySystem(void (*system)(Interface &interface, ComponentListT& ...));
+
+	/**
+	 * @brief Applies passed function/functor/lambda (ECS system) to all entities matching required conditions.
+	 * @param system The system working on/changing components' data.
+	 * @param components Instances of components passed by the user.
+	 * @tparam ComponentListT The list of components required for the system to work properly.
+	 * 
+	 * Implementation of example system with interface:
+	 * @code
+	 * void FilterSystem(ecs::Interface &interface, SomeComponent &comp)
+	 * {
+	 *     if(((interface.flags() & ecs::uint64{1} << 13) >> 13) == true)  // if 13'th flag is set to 1
+	 *         comp.some_var = 1337;
+	 * }
+	 * @endcode
+	 *
+	 * Example above presents system which sets some_var to 1337 only if some flag of the entity is
+	 *   set to 1. This allows the user to additionally filter entities which will be modified by
+	 *   the system.
+	 * 
+	 * @see void applySystem(std::function<void(ComponentListT& ...)> system)
+	 */
+	template<typename... ComponentListT>
+	void applySystem(void (*system)(ComponentListT& ...), ComponentListT& ...components);
+
+	/**
+	 * @brief Executes passed function/functor/lambda (ECS system) for all entities in the buffer.
+	 * @param system The executed function.
+	 * 
+	 * This method provides additional possibility to pass to the system a so called 'Interface'.
+	 * Interface contains all useful information about the entity:
+	 *   1) index in the buffer;
+	 *   2) id of the entity;
+	 *   3) flags, which can be modified;
+	 *   4) component bitset.
+	 * 
+	 * Implementation of example system with interface:
+	 * @code
+	 * void FilterSystem(ecs::Interface &interface)
+	 * {
+	 *     if(((interface.flags() & ecs::uint64{1} << 13) >> 13) == true)  // if 13'th flag is set to 1
+	 *         std::cout << interface.id() << std::endl;
+	 * }
+	 * @endcode
+	 *
+	 * Example above presents system which sets some_var to 1337 only if some flag of the entity is
+	 *   set to 1. This allows the user to additionally filter entities which will be modified by
+	 *   the system.
+	 */
+	void applySystem(void (*system)(Interface &interface));
 
 private:
 	/**
@@ -354,6 +404,9 @@ private:
 	 */
 	template <typename... ComponentListT> auto getMatchingComponentPack(const uint64 &entity_id);
 
+	/**
+	 * @brief Convenience helper method running code instead of applySystem()
+	 */
 	void applySystemHelper(std::function<void(const uint64, const uint64)> scheduler);
 
 private:

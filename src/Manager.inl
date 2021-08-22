@@ -158,8 +158,8 @@ void Manager<TypeListT>::deleteEntity(const uint64 entity_id)
 	{
 		if(*e == entity_id)
 		{
-			break;
 			exists = true;
+			break;
 		}
 	}
 	if(exists)
@@ -224,7 +224,7 @@ const unsigned Manager<TypeListT>::deleteFilteredEntities(uint64 &&bitset, State
 		bitset_copy >>= 1;
 	}  // after this loop, bitset_copy is expected to be completely empty
 
-	bool vals[flag_count] = {values...};  // states of flags stored in a helper array
+	bool vals[] = {values...};  // states of flags stored in a helper array
 	auto iter = 0u;  // index of a checked entity
 	auto flag_count_copy = flag_count;  // copying a value of flag count for use inside the loop
 	bool to_delete = true;  // should particular entity be removed from the buffer?
@@ -262,6 +262,7 @@ const unsigned Manager<TypeListT>::deleteFilteredEntities(uint64 &&bitset, State
 		{
 			this->deleteEntity(m_entityBuffer.at(iter));
 			deleted_count++;
+			iter--;  // indices are shifted, so we need to adjust
 		}
 		iter++;
 	}
@@ -407,6 +408,45 @@ void Manager<TypeListT>::applySystem(void (*system)(Interface &interface, Compon
 				// for every matching entity, pass to system (which in fact is an ECS System) tuple of arguments
 				std::apply(wrapper(interface), this->getMatchingComponentPack<ComponentListT...>(m_entityBuffer[i]));
 			}
+		}
+	};
+	this->applySystemHelper(execute);
+}
+
+template <typename TypeListT>
+template<typename... ComponentListT>
+void Manager<TypeListT>::applySystem(void (*system)(ComponentListT& ...), ComponentListT& ...components)
+{
+	// creating a bitset which will be compared with m_entityComponents vector
+	uint64 bitset = uint64{0};
+	((bitset |= (uint64{1} << (meta::IndexOf<ComponentListT, TypeListT>))), ...);
+
+	// constructing function which will be executed by parallel threads
+	auto execute = [&bitset, system, &components..., this](const uint64 start, const uint64 stop)
+	{
+		for(uint64 i = start; i < stop; i++)
+		{
+			if((bitset & m_entityComponents[i]) == bitset)  // if tested entity has requested components
+			{
+				// for every matching entity, pass to system (which in fact is an ECS System) all required components
+				std::invoke(system, components...);
+			}
+		}
+	};
+	this->applySystemHelper(execute);
+}
+
+template <typename TypeListT>
+void Manager<TypeListT>::applySystem(void (*system)(Interface &interface))
+{
+	// constructing function which will be executed by parallel threads
+	auto execute = [system, this](const uint64 start, const uint64 stop)
+	{
+		for(uint64 i = start; i < stop; i++)
+		{
+			Interface interface(m_entityBuffer[i], i, m_entityFlags[i], m_entityComponents[i]);
+			// for every entity
+			std::invoke(system, interface);
 		}
 	};
 	this->applySystemHelper(execute);

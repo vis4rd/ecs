@@ -185,7 +185,7 @@ std::optional<meta::TypeAt<decimalIndex, meta::TypeList<Typepack...>>> Component
 // clear()
 
 template <typename... Typepack>
-template <uint16 Index = (sizeof... (Typepack) - 1)>
+template <uint16 Index>
 void ComponentBuffer<meta::TypeList<Typepack...>>::clear() noexcept
 {
 	std::get<Index>(m_cBuffer).clear();
