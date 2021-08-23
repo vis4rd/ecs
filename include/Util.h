@@ -2,6 +2,50 @@
 
 #include "Root.h"
 
+#ifndef PRINT_ERRORS
+	#define PRINT_ERRORS 0
+#endif
+
+#ifndef ERROR_LOG
+	#define ERROR_LOG(arg) ((PRINT_ERRORS)==1 ? ( \
+		std::cerr << std::endl \
+			<< "[ERROR] [THREAD " << std::this_thread::get_id() << "] " \
+			<< "[LINE " << __LINE__ << "] " \
+			<< __func__ << "(): " \
+			<< (arg) << std::endl) \
+		: std::cerr<<"" \
+		)
+#endif
+
+#ifndef PRINT_WARNINGS
+	#define PRINT_WARNINGS 0
+#endif
+
+#ifndef WARNING_LOG
+	#define WARNING_LOG(arg) ((PRINT_WARNINGS)==1 ? ( \
+		std::cerr << std::endl \
+			<< "[WARNING] [THREAD " << std::this_thread::get_id() << "] " \
+			<< "[LINE " << __LINE__ << "] " \
+			<< __func__ << "(): " \
+			<< (arg) << std::endl) \
+		: std::cerr<<"" \
+		)
+#endif
+
+#ifndef PRINT_DEBUG
+	#define PRINT_DEBUG 0
+#endif
+
+#ifndef DEBUG_LOG
+	#define DEBUG_LOG(arg) ((PRINT_DEBUG==1) ? ( \
+		std::cerr << std::endl \
+			<< "[DEBUG] " << "[LINE " << __LINE__ << "] " \
+			<< __func__ << "(): " \
+			<< (arg) << std::endl) \
+		: std::cerr<<"" \
+		)
+#endif
+
 namespace ecs
 {
 namespace util
