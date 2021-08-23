@@ -228,7 +228,7 @@ const unsigned Manager<TypeListT>::deleteFilteredEntities(uint64 &&bitset, State
 	auto iter = 0u;  // index of a checked entity
 	auto flag_count_copy = flag_count;  // copying a value of flag count for use inside the loop
 	bool to_delete = true;  // should particular entity be removed from the buffer?
-	for(auto &f : m_entityFlags)  // check for every entity
+	for(uint32 f = 0u; f < m_entityFlags.size(); f++)  // check for every entity
 	{
 		bitset_copy = bitset;
 		flag_count_copy = flag_count;
@@ -244,7 +244,7 @@ const unsigned Manager<TypeListT>::deleteFilteredEntities(uint64 &&bitset, State
 					bitset_copy ^= (-0 ^ bitset_copy) & bit;
 					// the requested flag is found, so decrement the count
 					flag_count_copy--;
-					if((f & bit) != val)  // if the flag is not the same as value
+					if((m_entityFlags.at(f) & bit) != val)  // if the flag is not the same as value
 					{
 						to_delete = false;  // entity does not match
 						break;  // there's no need to check other bits in the bitset
@@ -262,7 +262,7 @@ const unsigned Manager<TypeListT>::deleteFilteredEntities(uint64 &&bitset, State
 		{
 			this->deleteEntity(m_entityBuffer.at(iter));
 			deleted_count++;
-			iter--;  // indices are shifted, so we need to adjust
+			iter--; f--;  // indices are shifted, so we need to adjust
 		}
 		iter++;
 	}
