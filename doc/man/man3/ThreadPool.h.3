@@ -1,0 +1,54 @@
+.TH "S:/PROGRAMMING/CPP/ecs/include/ThreadPool.h" 3 "Sat Aug 28 2021" "Version 0.1.0" "Entity Component System" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+S:/PROGRAMMING/CPP/ecs/include/ThreadPool.h
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'Root\&.h'\fP
+.br
+\fC#include '\&.\&./src/ThreadPool\&.inl'\fP
+.br
+
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBecs::impl::SafeQueue< T >\fP"
+.br
+.RI "Class representing thread-safe queue\&. "
+.ti -1c
+.RI "class \fBecs::ThreadPool\fP"
+.br
+.RI "The class representing dynamic pool of computing threads\&. "
+.in -1c
+.SS "Namespaces"
+
+.in +1c
+.ti -1c
+.RI " \fBecs\fP"
+.br
+.ti -1c
+.RI " \fBecs::impl\fP"
+.br
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBNODISCARD_REASON\fP   'The returned value is not used\&. Calling this method is unnecessary\&.'"
+.br
+.ti -1c
+.RI "#define \fBNDMESSAGE\fP   [[nodiscard(\fBNODISCARD_REASON\fP)]]"
+.br
+.in -1c
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define NDMESSAGE   [[nodiscard(\fBNODISCARD_REASON\fP)]]"
+
+.SS "#define NODISCARD_REASON   'The returned value is not used\&. Calling this method is unnecessary\&.'"
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Entity Component System from the source code\&.

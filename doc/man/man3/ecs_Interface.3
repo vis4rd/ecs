@@ -1,0 +1,133 @@
+.TH "ecs::Interface" 3 "Sat Aug 28 2021" "Version 0.1.0" "Entity Component System" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+ecs::Interface \- Class representing interface used in ECS systems\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <Interface\&.h>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBInterface\fP (const uint64 &\fBid\fP, const uint64 &\fBindex\fP, uint64 &flag_bitset, const uint64 &component_bitset)"
+.br
+.RI "The constructor\&. "
+.ti -1c
+.RI "const uint64 & \fBid\fP () const"
+.br
+.RI "Gets the ID of an entity\&. "
+.ti -1c
+.RI "const uint64 & \fBindex\fP () const"
+.br
+.RI "Gets the index of an entity\&. "
+.ti -1c
+.RI "uint64 & \fBflags\fP ()"
+.br
+.RI "Gets the flag bitset of an entity\&. "
+.ti -1c
+.RI "const uint64 & \fBcomponents\fP () const"
+.br
+.RI "Gets the component bitset of an entity\&. "
+.in -1c
+.SS "Private Attributes"
+
+.in +1c
+.ti -1c
+.RI "const uint64 & \fBm_id\fP"
+.br
+.ti -1c
+.RI "const uint64 & \fBm_index\fP"
+.br
+.ti -1c
+.RI "uint64 & \fBm_flagBitset\fP"
+.br
+.ti -1c
+.RI "const uint64 & \fBm_compBitset\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Class representing interface used in ECS systems\&. 
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "ecs::Interface::Interface (const uint64 & id, const uint64 & index, uint64 & flag_bitset, const uint64 & component_bitset)"
+
+.PP
+The constructor\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIid\fP The ID of an entity\&. 
+.br
+\fIindex\fP The index of an entity in the buffer\&. 
+.br
+\fIflag_bitset\fP The flag bitset of an entity\&. 
+.br
+\fIcomponent_bitset\fP The component bitset of an entity\&.
+.RE
+.PP
+All these arguments can be used by the user in an ECS system\&. applySystem() method passes values corresponding to entities it operates on\&. 
+.SH "Member Function Documentation"
+.PP 
+.SS "const uint64& ecs::Interface::components () const"
+
+.PP
+Gets the component bitset of an entity\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The component bitset\&. 
+.RE
+.PP
+
+.SS "uint64& ecs::Interface::flags ()"
+
+.PP
+Gets the flag bitset of an entity\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The flag bitset\&. 
+.RE
+.PP
+
+.SS "const uint64& ecs::Interface::id () const"
+
+.PP
+Gets the ID of an entity\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The ID\&. 
+.RE
+.PP
+
+.SS "const uint64& ecs::Interface::index () const"
+
+.PP
+Gets the index of an entity\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The index\&. 
+.RE
+.PP
+
+.SH "Member Data Documentation"
+.PP 
+.SS "const uint64& ecs::Interface::m_compBitset\fC [private]\fP"
+The entity's component bitset\&. 
+.SS "uint64& ecs::Interface::m_flagBitset\fC [private]\fP"
+The entity's flag bitset\&. 
+.SS "const uint64& ecs::Interface::m_id\fC [private]\fP"
+The entity's ID\&. 
+.SS "const uint64& ecs::Interface::m_index\fC [private]\fP"
+The entity's index in the buffer\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Entity Component System from the source code\&.

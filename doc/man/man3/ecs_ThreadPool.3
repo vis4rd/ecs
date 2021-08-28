@@ -1,0 +1,652 @@
+.TH "ecs::ThreadPool" 3 "Sat Aug 28 2021" "Version 0.1.0" "Entity Component System" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+ecs::ThreadPool \- The class representing dynamic pool of computing threads\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <ThreadPool\&.h>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBThreadPool\fP (const unsigned thread_count=2u)"
+.br
+.RI "The constructor of the \fBThreadPool\fP class\&. "
+.ti -1c
+.RI "\fBThreadPool\fP (const \fBThreadPool\fP &)=delete"
+.br
+.ti -1c
+.RI "\fBThreadPool\fP (\fBThreadPool\fP &&)=delete"
+.br
+.ti -1c
+.RI "\fBThreadPool\fP & \fBoperator=\fP (const \fBThreadPool\fP &)=delete"
+.br
+.ti -1c
+.RI "\fBThreadPool\fP & \fBoperator=\fP (\fBThreadPool\fP &&)=delete"
+.br
+.ti -1c
+.RI "virtual \fB~ThreadPool\fP ()"
+.br
+.ti -1c
+.RI "std::thread & \fBgetThread\fP (const unsigned id)"
+.br
+.RI "Gets the thread instance from the pool\&. "
+.ti -1c
+.RI "\fBNDMESSAGE\fP const unsigned \fBtotalThreadCount\fP () const"
+.br
+.RI "Gets the total number of threads in the pool\&. "
+.ti -1c
+.RI "\fBNDMESSAGE\fP const unsigned \fBidleThreadCount\fP () const"
+.br
+.RI "Gets the number of idle threads in the pool\&. "
+.ti -1c
+.RI "\fBNDMESSAGE\fP const unsigned \fBpendingTasksCount\fP () const"
+.br
+.RI "Gets the number of pending tasks in the queue\&. "
+.ti -1c
+.RI "void \fBresize\fP (const unsigned thread_count)"
+.br
+.RI "Resizes the thread pool (changes the number of working threads)\&. "
+.ti -1c
+.RI "void \fBhalt\fP (const bool finish_tasks=false)"
+.br
+.RI "Stops all threads\&. "
+.ti -1c
+.RI "void \fBhaltInfinite\fP ()"
+.br
+.RI "Stops all threads with infinite tasks\&. "
+.ti -1c
+.RI "void \fBrestart\fP ()"
+.br
+.RI "Restarts the thread pool\&. "
+.ti -1c
+.RI "template<typename Functor > auto \fBaddTask\fP (Functor &&func) \-> std::future< decltype(func(0))>"
+.br
+.RI "Adds a new task to the queue\&. "
+.ti -1c
+.RI "template<typename Functor > auto \fBaddTask\fP (Functor &&func) \-> std::future< decltype(func())>"
+.br
+.RI "Adds a new task to the queue\&. "
+.ti -1c
+.RI "template<typename Functor , typename\&.\&.\&. Args> auto \fBaddTask\fP (Functor &&func, Args &&\&.\&.\&.arguments) \-> std::future< decltype(func(0, arguments\&.\&.\&.))>"
+.br
+.RI "Adds a new task to the queue\&. "
+.ti -1c
+.RI "template<typename Functor , typename\&.\&.\&. Args> auto \fBaddTask\fP (Functor &&func, Args &&\&.\&.\&.arguments) \-> std::future< decltype(func(arguments\&.\&.\&.))>"
+.br
+.RI "Adds a new task to the queue\&. "
+.ti -1c
+.RI "template<typename Functor > auto \fBaddInfiniteTask\fP (Functor &&func) \-> std::future< decltype(func(0))>"
+.br
+.RI "Adds a new infinite task to the queue\&. "
+.ti -1c
+.RI "template<typename Functor > auto \fBaddInfiniteTask\fP (Functor &&func) \-> std::future< decltype(func())>"
+.br
+.RI "Adds a new infinite task to the queue\&. "
+.ti -1c
+.RI "template<typename Functor , typename\&.\&.\&. Args> auto \fBaddInfiniteTask\fP (Functor &&func, Args &&\&.\&.\&.arguments) \-> std::future< decltype(func(0, arguments\&.\&.\&.))>"
+.br
+.RI "Adds a new infinite task to the queue\&. "
+.ti -1c
+.RI "template<typename Functor , typename\&.\&.\&. Args> auto \fBaddInfiniteTask\fP (Functor &&func, Args &&\&.\&.\&.arguments) \-> std::future< decltype(func(arguments\&.\&.\&.))>"
+.br
+.RI "Adds a new infinite task to the queue\&. "
+.in -1c
+.SS "Private Member Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBsetupThread\fP (const int index)"
+.br
+.RI "Creates and initializes a thread for computing\&. "
+.ti -1c
+.RI "void \fBclearQueue\fP ()"
+.br
+.RI "Clears the queue of tasks\&. "
+.in -1c
+.SS "Private Attributes"
+
+.in +1c
+.ti -1c
+.RI "std::vector< std::unique_ptr< std::thread > > \fBm_threads\fP"
+.br
+.ti -1c
+.RI "std::vector< std::shared_ptr< std::atomic< bool > > > \fBm_abortFlags\fP"
+.br
+.ti -1c
+.RI "\fBimpl::SafeQueue\fP< std::function< void(const int)> * > \fBm_queue\fP"
+.br
+.ti -1c
+.RI "std::atomic< bool > \fBm_finishedFlag\fP"
+.br
+.ti -1c
+.RI "std::atomic< bool > \fBm_haltFlag\fP"
+.br
+.ti -1c
+.RI "std::atomic< bool > \fBm_infHaltFlag\fP"
+.br
+.ti -1c
+.RI "std::atomic< unsigned > \fBm_waitingThreadsCount\fP"
+.br
+.ti -1c
+.RI "std::atomic< unsigned > \fBm_pendingTasksCount\fP"
+.br
+.ti -1c
+.RI "std::mutex \fBm_mutex\fP"
+.br
+.ti -1c
+.RI "std::condition_variable \fBm_cond\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+The class representing dynamic pool of computing threads\&. 
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "ecs::ThreadPool::ThreadPool (const unsigned thread_count = \fC2u\fP)"
+
+.PP
+The constructor of the \fBThreadPool\fP class\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIthread_count\fP The number of created threads\&.
+.RE
+.PP
+By default, thread count is set to minimal logical value, which is 2\&. To unleash full power of multithreading, check your hardware capabilities and pass the maximal value\&. 
+.PP
+.nf
+std::size_t thcount = std::thread::hardware_concurrency
+
+.fi
+.PP
+ 
+.SS "ecs::ThreadPool::ThreadPool (const \fBThreadPool\fP &)\fC [delete]\fP"
+Deleted copy constructor\&. 
+.SS "ecs::ThreadPool::ThreadPool (\fBThreadPool\fP &&)\fC [delete]\fP"
+Deleted move constructor\&. 
+.SS "virtual ecs::ThreadPool::~ThreadPool ()\fC [virtual]\fP"
+The virtual destructor, which calls halt(true) and \fBhaltInfinite()\fP\&. 
+.SH "Member Function Documentation"
+.PP 
+.SS "template<typename Functor > auto ecs::ThreadPool::addInfiniteTask (Functor && func) \->  std::future< decltype(func())>"
+
+.PP
+Adds a new infinite task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which will hold the returned result (if any) of the last execution\&.
+.RE
+.PP
+This method is and overload of the previous \fBaddInfiniteTask()\fP and it does not require to add a const int argument to the function parameters\&.
+.PP
+The difference between \fBaddTask()\fP and \fBaddInfiniteTask()\fP is that in the latter the function's body is nested inside a while(true) loop\&. This means that the function will be constantly executed until \fBhalt()\fP or \fBhaltInfinite()\fP is called\&.
+.PP
+Example: 
+.PP
+.nf
+void task() { std::cout << "Hello darkness my old friend\&.\&.\&." << std::endl; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addInfiniteTask(task);
+    TP\&.halt(false);  // this line is important, because it stops the infinite task
+}
+// Output:
+// Hello darkness my old friend\&.\&.\&.
+// Hello darkness my old friend\&.\&.\&.
+// Hello darkness my old friend\&.\&.\&.
+// \&.\&.\&.
+
+.fi
+.PP
+ 
+.SS "template<typename Functor > auto ecs::ThreadPool::addInfiniteTask (Functor && func) \->  std::future< decltype(func(0))>"
+
+.PP
+Adds a new infinite task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which will hold the returned result (if any) of the last execution\&.
+.RE
+.PP
+Functions require the first argument to have a const int, because \fBaddTask()\fP passes a thread id to it for the use by the function\&.
+.PP
+The difference between \fBaddTask()\fP and \fBaddInfiniteTask()\fP is that in the latter the function's body is nested inside a while(true) loop\&. This means that the function will be constantly executed until \fBhalt()\fP or \fBhaltInfinite()\fP is called\&.
+.PP
+Example: 
+.PP
+.nf
+void task(const int thread_id) { std::cout << "Hello from thread " << thread_id << std::endl; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addInfiniteTask(task);
+    TP\&.halt(false);  // this line is important, because it stops the infinite task
+}
+// A is an index of the thread in <0-3> domain\&.
+// Output:
+// Hello from thread A
+// Hello from thread A
+// Hello from thread A
+// \&.\&.\&.
+
+.fi
+.PP
+ 
+.SS "template<typename Functor , typename\&.\&.\&. Args> auto ecs::ThreadPool::addInfiniteTask (Functor && func, Args &&\&.\&.\&. arguments) \->  std::future< decltype(func(0, arguments\&.\&.\&.))>"
+
+.PP
+Adds a new infinite task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.br
+\fIarguments\fP The extra arguments passed to the function func\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.br
+\fIArgs\fP Types of the extra erguments passed to the function func\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which will hold the returned result (if any) of the last execution\&.
+.RE
+.PP
+Functions require the first argument to have a const int, because \fBaddTask()\fP passes a thread id to it for the use by the function\&.
+.PP
+The difference between \fBaddTask()\fP and \fBaddInfiniteTask()\fP is that in the latter the function's body is nested inside a while(true) loop\&. This means that the function will be constantly executed until \fBhalt()\fP or \fBhaltInfinite()\fP is called\&.
+.PP
+Example: 
+.PP
+.nf
+void task(const int thread_id, const std::string &additional_parameter) { std::cout << additional_parameter << " from thread " << thread_id << std::endl; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addInfiniteTask(task, "Hello there");
+    TP\&.halt(false);  // this line is important, because it stops the infinite task
+}
+// A is an index of the thread in <0-3> domain\&.
+// Output:
+// Hello there from thread A
+// Hello there from thread A
+// Hello there from thread A
+// \&.\&.\&.
+
+.fi
+.PP
+ 
+.SS "template<typename Functor , typename\&.\&.\&. Args> auto ecs::ThreadPool::addInfiniteTask (Functor && func, Args &&\&.\&.\&. arguments) \->  std::future< decltype(func(arguments\&.\&.\&.))>"
+
+.PP
+Adds a new infinite task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.br
+\fIarguments\fP The extra arguments passed to the function func\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.br
+\fIArgs\fP Types of the extra erguments passed to the function func\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which will hold the returned result (if any) of the last execution\&.
+.RE
+.PP
+This method is and overload of the previous \fBaddInfiniteTask()\fP and it does not require to add a const int argument to the function parameters\&.
+.PP
+The difference between \fBaddTask()\fP and \fBaddInfiniteTask()\fP is that in the latter the function's body is nested inside a while(true) loop\&. This means that the function will be constantly executed until \fBhalt()\fP or \fBhaltInfinite()\fP is called\&.
+.PP
+Example: 
+.PP
+.nf
+void task(const std::string &additional_parameter) { std::cout << additional_parameter << std::endl; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addInfiniteTask(task, "Hello darkness my old friend\&.\&.\&.");
+    TP\&.halt(false);  // this line is important, because it stops the infinite task
+}
+// Output:
+// Hello darkness my old friend\&.\&.\&.
+// Hello darkness my old friend\&.\&.\&.
+// Hello darkness my old friend\&.\&.\&.
+// \&.\&.\&.
+
+.fi
+.PP
+ 
+.SS "template<typename Functor > auto ecs::ThreadPool::addTask (Functor && func) \->  std::future< decltype(func())>"
+
+.PP
+Adds a new task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which after execution will hold the returned result (if any)\&.
+.RE
+.PP
+This method is and overload of the previous \fBaddTask()\fP and it does not require to add a const int argument to the function parameters\&.
+.PP
+Example: 
+.PP
+.nf
+void task() { std::cout << "Hello world!"; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addTask(task);
+}
+// Output: Hello world!
+
+.fi
+.PP
+ 
+.SS "template<typename Functor > auto ecs::ThreadPool::addTask (Functor && func) \->  std::future< decltype(func(0))>"
+
+.PP
+Adds a new task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which after execution will hold the returned result (if any)\&.
+.RE
+.PP
+Functions require the first argument to have a const int, because \fBaddTask()\fP passes a thread id to it for the use by the function\&.
+.PP
+Example: 
+.PP
+.nf
+void task(const int thread_id) { std::cout << "Hello from thread " << thread_id; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addTask(task);
+}
+// Output: Hello from thread <0-3>
+
+.fi
+.PP
+ 
+.SS "template<typename Functor , typename\&.\&.\&. Args> auto ecs::ThreadPool::addTask (Functor && func, Args &&\&.\&.\&. arguments) \->  std::future< decltype(func(0, arguments\&.\&.\&.))>"
+
+.PP
+Adds a new task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.br
+\fIarguments\fP The extra arguments passed to the function func\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.br
+\fIArgs\fP Types of the extra erguments passed to the function func\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which after execution will hold the returned result (if any)\&.
+.RE
+.PP
+Functions require the first argument to have a const int, because \fBaddTask()\fP passes a thread id to it for the use by the function\&.
+.PP
+Example: 
+.PP
+.nf
+void task(const int id, std::string additional_parameter) { std::cout << additional_parameter << " from thread " << id; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addTask(task, "Hello");
+}
+// Output: Hello from thread <0-3>
+
+.fi
+.PP
+ 
+.SS "template<typename Functor , typename\&.\&.\&. Args> auto ecs::ThreadPool::addTask (Functor && func, Args &&\&.\&.\&. arguments) \->  std::future< decltype(func(arguments\&.\&.\&.))>"
+
+.PP
+Adds a new task to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function which will be executed by one of the threads\&. 
+.br
+\fIarguments\fP The extra arguments passed to the function func\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIFunctor\fP Signature of the mentioned function\&. User doesn't need to explicitly specify it\&. 
+.br
+\fIArgs\fP Types of the extra erguments passed to the function func\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The std::future of the passed task, which after execution will hold the returned result (if any)\&.
+.RE
+.PP
+This method is and overload of the previous \fBaddTask()\fP and it does not require to add a const int argument to the function parameters\&.
+.PP
+Example: 
+.PP
+.nf
+void task(std::string additional_parameter) { std::cout << additional_parameter; }
+
+int main(){  // main as an example, the caller function/method can be whatever
+    ecs::ThreadPool TP(4);  // setting thread count to 4
+    TP\&.addTask(task, "Hello world!");
+}
+// Output: Hello world!
+
+.fi
+.PP
+ 
+.SS "void ecs::ThreadPool::clearQueue ()\fC [private]\fP"
+
+.PP
+Clears the queue of tasks\&. 
+.PP
+\fBWarning\fP
+.RS 4
+For internal use only\&. 
+.RE
+.PP
+
+.SS "std::thread& ecs::ThreadPool::getThread (const unsigned id)"
+
+.PP
+Gets the thread instance from the pool\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIid\fP The index of the thread\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The thread instance\&. 
+.RE
+.PP
+
+.SS "void ecs::ThreadPool::halt (const bool finish_tasks = \fCfalse\fP)"
+
+.PP
+Stops all threads\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfinish_tasks\fP If true, all threads clear the queue before stopping, else they finish immediately\&.
+.RE
+.PP
+This member function also stops all infinite tasks\&. 
+.SS "void ecs::ThreadPool::haltInfinite ()"
+
+.PP
+Stops all threads with infinite tasks\&. The behaviour is not the same as in \fBhalt()\fP member function, because this one only halts currently running infinite tasks\&. Status of queued tasks availability is not changed (besides that all threads which were computing infinite tasks are now free to empty the queue)\&. This method DOES NOT halt any threads for good, it only breaks the while(true) loops in infinite tasks\&. It is also called by the \fBThreadPool\fP destructor\&.
+.PP
+\fBWarning\fP
+.RS 4
+In order to add a new infinite task to the queue, \fBThreadPool\fP has to be restarted with \fBrestart()\fP member function\&. 
+.RE
+.PP
+
+.SS "\fBNDMESSAGE\fP const unsigned ecs::ThreadPool::idleThreadCount () const"
+
+.PP
+Gets the number of idle threads in the pool\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The idle thread count\&. 
+.RE
+.PP
+
+.SS "\fBThreadPool\fP& ecs::ThreadPool::operator= (const \fBThreadPool\fP &)\fC [delete]\fP"
+Deleted copy assignment\&. 
+.SS "\fBThreadPool\fP& ecs::ThreadPool::operator= (\fBThreadPool\fP &&)\fC [delete]\fP"
+Deleted move assignment\&. 
+.SS "\fBNDMESSAGE\fP const unsigned ecs::ThreadPool::pendingTasksCount () const"
+
+.PP
+Gets the number of pending tasks in the queue\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The pending tasks count\&. 
+.RE
+.PP
+
+.SS "void ecs::ThreadPool::resize (const unsigned thread_count)"
+
+.PP
+Resizes the thread pool (changes the number of working threads)\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIthread_count\fP The new thread count\&.
+.RE
+.PP
+If the new thread count is lower than the previous one, all extra threads will finish their tasks and only then will be deleted\&. If the new thread count is greater, the existing threads are left uninterrupted\&. 
+.SS "void ecs::ThreadPool::restart ()"
+
+.PP
+Restarts the thread pool\&. Calls halt(true) and sets all flags to their initial values\&. 
+.SS "void ecs::ThreadPool::setupThread (const int index)\fC [private]\fP"
+
+.PP
+Creates and initializes a thread for computing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIindex\fP The index of the thread in the container\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+For internal use only\&. 
+.RE
+.PP
+
+.SS "\fBNDMESSAGE\fP const unsigned ecs::ThreadPool::totalThreadCount () const"
+
+.PP
+Gets the total number of threads in the pool\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The thread count\&. 
+.RE
+.PP
+
+.SH "Member Data Documentation"
+.PP 
+.SS "std::vector<std::shared_ptr<std::atomic<bool> > > ecs::ThreadPool::m_abortFlags\fC [private]\fP"
+Abort flags for threads\&. 
+.SS "std::condition_variable ecs::ThreadPool::m_cond\fC [private]\fP"
+The global condition variable used for notifying and syncing all threads\&. 
+.SS "std::atomic<bool> ecs::ThreadPool::m_finishedFlag\fC [private]\fP"
+The flag describing if all tasks have benn completed\&. 
+.SS "std::atomic<bool> ecs::ThreadPool::m_haltFlag\fC [private]\fP"
+The global flag used for hard halting computation of all threads\&. 
+.SS "std::atomic<bool> ecs::ThreadPool::m_infHaltFlag\fC [private]\fP"
+The global flag used for breaking infinite tasks\&. 
+.SS "std::mutex ecs::ThreadPool::m_mutex\fC [private]\fP"
+The global mutex of the \fBThreadPool\fP class\&. 
+.SS "std::atomic<unsigned> ecs::ThreadPool::m_pendingTasksCount\fC [private]\fP"
+The number of pending tasks in the queue\&. 
+.SS "\fBimpl::SafeQueue\fP<std::function<void(const int)> *> ecs::ThreadPool::m_queue\fC [private]\fP"
+The queue of tasks assigned by the user\&. 
+.SS "std::vector<std::unique_ptr<std::thread> > ecs::ThreadPool::m_threads\fC [private]\fP"
+The container for threads\&. 
+.SS "std::atomic<unsigned> ecs::ThreadPool::m_waitingThreadsCount\fC [private]\fP"
+The number of idle threads\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Entity Component System from the source code\&.

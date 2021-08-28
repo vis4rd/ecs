@@ -1,0 +1,208 @@
+.TH "ecs::impl::SafeQueue< T >" 3 "Sat Aug 28 2021" "Version 0.1.0" "Entity Component System" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+ecs::impl::SafeQueue< T > \- Class representing thread-safe queue\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <ThreadPool\&.h>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "const bool \fBpush\fP (const T &value)"
+.br
+.RI "Adds a new value to the queue\&. "
+.ti -1c
+.RI "const bool \fBpop\fP (T &value)"
+.br
+.RI "Removes the first value from the queue\&. "
+.ti -1c
+.RI "const bool \fBempty\fP ()"
+.br
+.RI "Checks if the queue is empty\&. "
+.ti -1c
+.RI "\fBSafeQueue\fP< T > & \fBappend\fP (\fBSafeQueue\fP< T > &&other)"
+.br
+.RI "Appends an other queue instance to the end of this instance\&. "
+.ti -1c
+.RI "\fBSafeQueue\fP< T > & \fBmerge\fP (\fBSafeQueue\fP< T > &&other)"
+.br
+.RI "Merges this instance with an other queue\&. "
+.ti -1c
+.RI "T & \fBfront\fP ()"
+.br
+.RI "Access to the front of the queue\&. "
+.ti -1c
+.RI "T & \fBback\fP ()"
+.br
+.RI "Access to the back of the queue\&. "
+.ti -1c
+.RI "const T & \fBfront\fP () const"
+.br
+.RI "Access to const value at the front of the queue\&. "
+.ti -1c
+.RI "const T & \fBback\fP () const"
+.br
+.RI "Access to const value at the back of the queue\&. "
+.in -1c
+.SS "Private Attributes"
+
+.in +1c
+.ti -1c
+.RI "std::queue< T > \fBm_queue\fP"
+.br
+.ti -1c
+.RI "std::mutex \fBm_mutex\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<typename T>
+.br
+class ecs::impl::SafeQueue< T >"
+Class representing thread-safe queue\&. 
+
+
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIT\fP The type of objects/values held by \fBSafeQueue\fP\&. 
+.RE
+.PP
+
+.SH "Member Function Documentation"
+.PP 
+.SS "template<typename T > \fBSafeQueue\fP<T>& \fBecs::impl::SafeQueue\fP< T >::append (\fBSafeQueue\fP< T > && other)"
+
+.PP
+Appends an other queue instance to the end of this instance\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIother\fP The other queue instance\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+This instance with the appended other queue\&. 
+.RE
+.PP
+
+.SS "template<typename T > T& \fBecs::impl::SafeQueue\fP< T >::back ()"
+
+.PP
+Access to the back of the queue\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The last value in the queue\&. 
+.RE
+.PP
+
+.SS "template<typename T > const T& \fBecs::impl::SafeQueue\fP< T >::back () const"
+
+.PP
+Access to const value at the back of the queue\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The const last value in the queue\&. 
+.RE
+.PP
+
+.SS "template<typename T > const bool \fBecs::impl::SafeQueue\fP< T >::empty ()"
+
+.PP
+Checks if the queue is empty\&. 
+.PP
+\fBReturns\fP
+.RS 4
+True if empty, false otherwise\&. 
+.RE
+.PP
+
+.SS "template<typename T > T& \fBecs::impl::SafeQueue\fP< T >::front ()"
+
+.PP
+Access to the front of the queue\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The first value in the queue\&. 
+.RE
+.PP
+
+.SS "template<typename T > const T& \fBecs::impl::SafeQueue\fP< T >::front () const"
+
+.PP
+Access to const value at the front of the queue\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The const first value in the queue\&. 
+.RE
+.PP
+
+.SS "template<typename T > \fBSafeQueue\fP<T>& \fBecs::impl::SafeQueue\fP< T >::merge (\fBSafeQueue\fP< T > && other)"
+
+.PP
+Merges this instance with an other queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIother\fP The other queue instance\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+This instance merged with the other instance\&.
+.RE
+.PP
+Merge() is different from \fBappend()\fP, because order of held values is preserved\&. Example: Q1 = { A B C D E } Q2 = { X Y Z } Q1\&.merge(Q2) = { A X B Y C Z D E } 
+.SS "template<typename T > const bool \fBecs::impl::SafeQueue\fP< T >::pop (T & value)"
+
+.PP
+Removes the first value from the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIv\fP The value removed from the queue (it is an output result)\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if removed an element successfully, false otherwise\&. 
+.RE
+.PP
+
+.SS "template<typename T > const bool \fBecs::impl::SafeQueue\fP< T >::push (const T & value)"
+
+.PP
+Adds a new value to the queue\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvalue\fP The new value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if pushed successfully, false otherwise\&. 
+.RE
+.PP
+
+.SH "Member Data Documentation"
+.PP 
+.SS "template<typename T > std::mutex \fBecs::impl::SafeQueue\fP< T >::m_mutex\fC [private]\fP"
+The global mutex of \fBSafeQueue\fP\&. 
+.SS "template<typename T > std::queue<T> \fBecs::impl::SafeQueue\fP< T >::m_queue\fC [private]\fP"
+The container holding values of \fBSafeQueue\fP\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Entity Component System from the source code\&.

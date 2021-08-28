@@ -1,0 +1,825 @@
+.TH "ecs::Manager< TypeListT >" 3 "Sat Aug 28 2021" "Version 0.1.0" "Entity Component System" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+ecs::Manager< TypeListT >
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <Manager\&.h>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBManager\fP (const \fBManager\fP< TypeListT > &copy)=delete"
+.br
+.ti -1c
+.RI "\fBManager\fP (\fBManager\fP< TypeListT > &&source)=delete"
+.br
+.ti -1c
+.RI "\fBManager\fP< TypeListT > & \fBoperator=\fP (const \fBManager\fP< TypeListT > &copy)=delete"
+.br
+.ti -1c
+.RI "\fBManager\fP< TypeListT > & \fBoperator=\fP (\fBManager\fP< TypeListT > &&source)=delete"
+.br
+.ti -1c
+.RI "template<uint16 TypeIndex> void \fBaddComponent\fP (const uint64 entity_id)"
+.br
+.RI "Adds a component to the component buffer\&. "
+.ti -1c
+.RI "template<uint16 TypeIndex> meta::TypeAt< TypeIndex, TypeListT > & \fBgetComponent\fP (const uint64 entity_id)"
+.br
+.RI "Gets the component reference from the pool\&. "
+.ti -1c
+.RI "template<typename ComponentT > ComponentT & \fBgetComponent\fP (const uint64 entity_id)"
+.br
+.RI "Gets the component reference from the pool using component type\&. "
+.ti -1c
+.RI "template<uint16 TypeIndex> std::vector< \fBComponentWrapper\fP< meta::TypeAt< TypeIndex, TypeListT > > > & \fBgetComponentBucket\fP ()"
+.br
+.RI "Gets the vector of wrapped (see explanation below) components\&. "
+.ti -1c
+.RI "template<typename ComponentT > std::vector< \fBComponentWrapper\fP< ComponentT > > & \fBgetComponentBucket\fP ()"
+.br
+.RI "Gets the vector of wrapped (see explanation below) components\&. "
+.ti -1c
+.RI "template<uint16 TypeIndex> const bool \fBcheckComponent\fP (const uint64 entity_id) const noexcept"
+.br
+.RI "Checks if the given components exists in the buffer\&. "
+.ti -1c
+.RI "\fBThreadPool\fP & \fBgetThreadPool\fP ()"
+.br
+.RI "Gets the \fBThreadPool\fP instance of the \fBManager\fP class\&. "
+.ti -1c
+.RI "const std::vector< uint64 > & \fBgetEntityBuffer\fP () const"
+.br
+.RI "Gets the vector of entity ids\&. "
+.ti -1c
+.RI "template<uint16 ComponentCount = uint16{64}> const uint64 & \fBaddEntity\fP (const uint64 components, const uint64 flags)"
+.br
+.RI "Adds a new entity to the buffer\&. "
+.ti -1c
+.RI "void \fBdeleteEntity\fP (const uint64 entity_id)"
+.br
+.RI "Removes entities from the buffer\&. "
+.ti -1c
+.RI "const bool \fBcheckEntity\fP (const uint64 entity_id) const noexcept"
+.br
+.RI "Checks if the given entity exists in the buffer\&. "
+.ti -1c
+.RI "void \fBdeleteAllEntities\fP ()"
+.br
+.RI "Removes all entities from the buffer\&. "
+.ti -1c
+.RI "template<typename\&.\&.\&. States> const unsigned \fBdeleteFilteredEntities\fP (uint64 &&bitset, States &&\&.\&.\&.values)"
+.br
+.RI "Removes all entities which have flags set to specific values\&. "
+.ti -1c
+.RI "const uint64 & \fBgetCurrentEntityCount\fP () const noexcept"
+.br
+.RI "Gets the current number of existing entities in the buffer\&. "
+.ti -1c
+.RI "const uint64 & \fBgetMaxEntityCount\fP () const noexcept"
+.br
+.RI "Gets the maximal possible number of entities that can fit into the buffer\&. "
+.ti -1c
+.RI "const bool \fBgetFlag\fP (const uint64 flagBit, const uint64 entity_id) const"
+.br
+.RI "Gets the flag status (1 or 0) of a given flag type and entity\&. "
+.ti -1c
+.RI "void \fBsetFlag\fP (const uint64 flagBit, const uint64 entity_id, const bool value) noexcept"
+.br
+.RI "Sets the flag status of the given bitwise position, entity id to the passed boolean value\&. "
+.ti -1c
+.RI "void \fBsetFlagsForAll\fP (const uint64 flagBit, const bool value)"
+.br
+.RI "Sets the flag status of the given bitwise position to the passed boolean value\&. "
+.ti -1c
+.RI "std::vector< uint64 > & \fBgetFlagBuffer\fP ()"
+.br
+.RI "Gets the vector of entities' flags\&. "
+.ti -1c
+.RI "template<typename\&.\&.\&. ComponentListT> void \fBapplySystem\fP (std::function< void(ComponentListT &\&.\&.\&.)> &system)"
+.br
+.RI "Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. "
+.ti -1c
+.RI "template<typename\&.\&.\&. ComponentListT> void \fBapplySystem\fP (void(*system)(ComponentListT &\&.\&.\&.))"
+.br
+.RI "Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. "
+.ti -1c
+.RI "template<typename\&.\&.\&. ComponentListT> void \fBapplySystem\fP (void(*system)(\fBInterface\fP &interface, ComponentListT &\&.\&.\&.))"
+.br
+.RI "Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. "
+.ti -1c
+.RI "template<typename\&.\&.\&. ComponentListT> void \fBapplySystem\fP (void(*system)(ComponentListT &\&.\&.\&.), ComponentListT &\&.\&.\&.components)"
+.br
+.RI "Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. "
+.ti -1c
+.RI "void \fBapplySystem\fP (void(*system)(\fBInterface\fP &interface))"
+.br
+.RI "Executes passed function/functor/lambda (ECS system) for all entities in the buffer\&. "
+.in -1c
+.SS "Static Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "static \fBManager\fP< TypeListT > & \fBgetInstance\fP (const uint64 max_entity_count=uint64{1000})"
+.br
+.RI "Gets an instance of the \fBManager\fP class\&. "
+.in -1c
+.SS "Private Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBManager\fP (const uint64 max_entity_count=uint64{1000})"
+.br
+.RI "Constructor\&. "
+.ti -1c
+.RI "template<uint16 Index> void \fBaddEntityComponents\fP (const uint64 components, const uint64 &entity_id)"
+.br
+.RI "Convenience helper method used in \fBaddEntity()\fP\&. "
+.ti -1c
+.RI "template<typename\&.\&.\&. ComponentListT> auto \fBgetMatchingComponentPack\fP (const uint64 &entity_id)"
+.br
+.RI "Convenience helper method getting components for use in \fBapplySystem()\fP "
+.ti -1c
+.RI "void \fBapplySystemHelper\fP (std::function< void(const uint64, const uint64)> scheduler)"
+.br
+.RI "Convenience helper method running code instead of \fBapplySystem()\fP "
+.in -1c
+.SS "Private Attributes"
+
+.in +1c
+.ti -1c
+.RI "std::vector< uint64 > \fBm_entityBuffer\fP"
+.br
+.ti -1c
+.RI "std::vector< uint64 > \fBm_entityFlags\fP"
+.br
+.ti -1c
+.RI "std::vector< uint64 > \fBm_entityComponents\fP"
+.br
+.ti -1c
+.RI "\fBComponentBuffer\fP< TypeListT > \fBm_componentBuffer\fP"
+.br
+.ti -1c
+.RI "\fBThreadPool\fP \fBm_threadPool\fP"
+.br
+.ti -1c
+.RI "uint16 \fBm_flagCount\fP"
+.br
+.ti -1c
+.RI "uint64 \fBm_maxEntityCount\fP"
+.br
+.ti -1c
+.RI "uint64 \fBm_entityCount\fP"
+.br
+.in -1c
+.SS "Static Private Attributes"
+
+.in +1c
+.ti -1c
+.RI "static uint64 \fBm_nextEntityID\fP"
+.br
+.ti -1c
+.RI "static constexpr const uint16 \fBm_componentCount\fP = meta::TypeListSize<TypeListT>"
+.br
+.in -1c
+.SS "Friends"
+
+.in +1c
+.ti -1c
+.RI "class \fBInterface\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<typename TypeListT>
+.br
+class ecs::Manager< TypeListT >"
+Template class \fBManager\fP
+.PP
+\fBManager\fP is the main interface provided for the user of this entity component system\&. It provides methods for adding/checking/deleting entities and components\&.
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIThe\fP component pool (types of components) used by all entities in the buffer\&. 
+.RE
+.PP
+
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "template<typename TypeListT > \fBecs::Manager\fP< TypeListT >::\fBManager\fP (const \fBManager\fP< TypeListT > & copy)\fC [delete]\fP"
+
+.SS "template<typename TypeListT > \fBecs::Manager\fP< TypeListT >::\fBManager\fP (\fBManager\fP< TypeListT > && source)\fC [delete]\fP"
+
+.SS "template<typename TypeListT > \fBecs::Manager\fP< TypeListT >::\fBManager\fP (const uint64 max_entity_count = \fCuint64{1000}\fP)\fC [private]\fP"
+
+.PP
+Constructor\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fImax_entity_count\fP The maximum entity count possible to add to the buffer\&.
+.RE
+.PP
+Constructor reserves enough memory for all entities fitting in the max cap\&. 
+.SH "Member Function Documentation"
+.PP 
+.SS "template<typename TypeListT > template<uint16 TypeIndex> void \fBecs::Manager\fP< TypeListT >::addComponent (const uint64 entity_id)"
+
+.PP
+Adds a component to the component buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fITypeIndex\fP Decimal index of the type of a component in the component pool\&.
+.RE
+.PP
+\fBManager\fP assumes that the user knows the order of components in the pool\&. Most-important bit represents the first component in the pool\&. 
+.SS "template<typename TypeListT > template<uint16 ComponentCount = uint16{64}> const uint64& \fBecs::Manager\fP< TypeListT >::addEntity (const uint64 components, const uint64 flags)"
+
+.PP
+Adds a new entity to the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcomponents\fP The bitset of components, where every component has it's own bitwise position\&. 
+.br
+\fIflags\fP The bitset of flags attached to entity, where every flag has it's own bitwise position\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentCount\fP Number of components bound to this entity passed to the buffer\&.
+.RE
+.PP
+It is recommended to specify ComponentCount when calling this method as components are added recursively, but on the other hand it is not required to do so (at cost of performance)\&. 
+.SS "template<typename TypeListT > template<uint16 Index> void \fBecs::Manager\fP< TypeListT >::addEntityComponents (const uint64 components, const uint64 & entity_id)\fC [private]\fP"
+
+.PP
+Convenience helper method used in \fBaddEntity()\fP\&. 
+.SS "template<typename TypeListT > template<typename\&.\&.\&. ComponentListT> void \fBecs::Manager\fP< TypeListT >::applySystem (std::function< void(ComponentListT &\&.\&.\&.)> & system)"
+
+.PP
+Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system working on/changing components' data\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentListT\fP The list of components required for the system to work properly\&.
+.RE
+.PP
+.PP
+.nf
+void system(int &arg1) { arg1 = 5; }
+std::function<void(int&)> fun = system;
+
+// Let's assume that ComponentBuffer has an int as one of the components\&. Then:
+
+using CPool = ecs::meta::ComponentPool<int>;  // creating pool of components for the manager
+ecs::Manager<CPool> manager;  // holds only one component type - int
+manager\&.addEntity<1>(ecs::uint64{1} << 63, ecs::uint64{0});
+// The second argument are flags, we pass 0 here to simplify the example\&.
+// Notice that the first (and only) component has the left-most bit position\&.
+
+manager\&.applySystem<int>(fun);
+ 
+// The system(int&) function has been applied to every entity with int component\&.
+.fi
+.PP
+.PP
+Template parameters are components that filter entities for which the system will be applied\&. The fewer components are required, the faster the application will work\&. On the other hand, the more components are passed, the more strict and precise is the filter\&. Given components and system arguments have to match 100% (including the same order of passing)! System's arguments have to be references, otherwise the value will be copied and the whole operation would not make any sense\&.
+.PP
+If the entity number is reaching over 5000, this method will use parallel threads\&. 
+.SS "template<typename TypeListT > template<typename\&.\&.\&. ComponentListT> void \fBecs::Manager\fP< TypeListT >::applySystem (void(*)(ComponentListT &\&.\&.\&.) system)"
+
+.PP
+Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system working on/changing components' data\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentListT\fP The list of components required for the system to work properly\&.
+.RE
+.PP
+This method is provided for convenience, allowing to pass raw function pointers instead of std::function objects\&.
+.PP
+\fBSee also\fP
+.RS 4
+void applySystem(std::function<void(ComponentListT& \&.\&.\&.)> system) 
+.RE
+.PP
+
+.SS "template<typename TypeListT > template<typename\&.\&.\&. ComponentListT> void \fBecs::Manager\fP< TypeListT >::applySystem (void(*)(ComponentListT &\&.\&.\&.) system, ComponentListT &\&.\&.\&. components)"
+
+.PP
+Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system working on/changing components' data\&. 
+.br
+\fIcomponents\fP Instances of components passed by the user\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentListT\fP The list of components required for the system to work properly\&.
+.RE
+.PP
+Implementation of example system with interface: 
+.PP
+.nf
+void FilterSystem(ecs::Interface &interface, SomeComponent &comp)
+{
+    if(((interface\&.flags() & ecs::uint64{1} << 13) >> 13) == true)  // if 13'th flag is set to 1
+        comp\&.some_var = 1337;
+}
+
+.fi
+.PP
+.PP
+Example above presents system which sets some_var to 1337 only if some flag of the entity is set to 1\&. This allows the user to additionally filter entities which will be modified by the system\&.
+.PP
+\fBSee also\fP
+.RS 4
+void applySystem(std::function<void(ComponentListT& \&.\&.\&.)> system) 
+.RE
+.PP
+
+.SS "template<typename TypeListT > void \fBecs::Manager\fP< TypeListT >::applySystem (void(*)(\fBInterface\fP &interface) system)"
+
+.PP
+Executes passed function/functor/lambda (ECS system) for all entities in the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The executed function\&.
+.RE
+.PP
+This method provides additional possibility to pass to the system a so called '\fBInterface\fP'\&. \fBInterface\fP contains all useful information about the entity: 1) index in the buffer; 2) id of the entity; 3) flags, which can be modified; 4) component bitset\&.
+.PP
+Implementation of example system with interface: 
+.PP
+.nf
+void FilterSystem(ecs::Interface &interface)
+{
+    if(((interface\&.flags() & ecs::uint64{1} << 13) >> 13) == true)  // if 13'th flag is set to 1
+        std::cout << interface\&.id() << std::endl;
+}
+
+.fi
+.PP
+.PP
+Example above presents system which sets some_var to 1337 only if some flag of the entity is set to 1\&. This allows the user to additionally filter entities which will be modified by the system\&. 
+.SS "template<typename TypeListT > template<typename\&.\&.\&. ComponentListT> void \fBecs::Manager\fP< TypeListT >::applySystem (void(*)(\fBInterface\fP &interface, ComponentListT &\&.\&.\&.) system)"
+
+.PP
+Applies passed function/functor/lambda (ECS system) to all entities matching required conditions\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system working on/changing components' data\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentListT\fP The list of components required for the system to work properly\&.
+.RE
+.PP
+This method provides additional possibility to pass to the system a so called '\fBInterface\fP'\&. \fBInterface\fP contains all useful information about the entity: 1) index in the buffer; 2) id of the entity; 3) flags, which can be modified; 4) component bitset\&.
+.PP
+Implementation of example system with interface: 
+.PP
+.nf
+void FilterSystem(ecs::Interface &interface, SomeComponent &comp)
+{
+    if(((interface\&.flags() & ecs::uint64{1} << 13) >> 13) == true)  // if 13'th flag is set to 1
+        comp\&.some_var = 1337;
+}
+
+.fi
+.PP
+.PP
+Example above presents system which sets some_var to 1337 only if some flag of the entity is set to 1\&. This allows the user to additionally filter entities which will be modified by the system\&.
+.PP
+\fBSee also\fP
+.RS 4
+void applySystem(std::function<void(ComponentListT& \&.\&.\&.)> system) 
+.RE
+.PP
+
+.SS "template<typename TypeListT > void \fBecs::Manager\fP< TypeListT >::applySystemHelper (std::function< void(const uint64, const uint64)> scheduler)\fC [private]\fP"
+
+.PP
+Convenience helper method running code instead of \fBapplySystem()\fP 
+.SS "template<typename TypeListT > template<uint16 TypeIndex> const bool \fBecs::Manager\fP< TypeListT >::checkComponent (const uint64 entity_id) const\fC [noexcept]\fP"
+
+.PP
+Checks if the given components exists in the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fITypeIndex\fP 
+.br
+\fITypeIndex\fP Decimal index of the type of a component in the component pool\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Boolean value indicating whether the component exists\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+Also this method is safe to use as it will not throw any exception when passed arguments don't exist\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > const bool \fBecs::Manager\fP< TypeListT >::checkEntity (const uint64 entity_id) const\fC [noexcept]\fP"
+
+.PP
+Checks if the given entity exists in the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Boolean value indicating whether the entity exists\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+Also this method is safe to use as it will not throw any exception when passed arguments don't exist\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > void \fBecs::Manager\fP< TypeListT >::deleteAllEntities ()"
+
+.PP
+Removes all entities from the buffer\&. 
+.PP
+\fBWarning\fP
+.RS 4
+This method also removes all flags and all components, because they are strictly bound to entities\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > void \fBecs::Manager\fP< TypeListT >::deleteEntity (const uint64 entity_id)"
+
+.PP
+Removes entities from the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&.
+.RE
+.PP
+If the given id is incorrect (entity doesn't exist) this method does nothing\&. 
+.SS "template<typename TypeListT > template<typename\&.\&.\&. States> const unsigned \fBecs::Manager\fP< TypeListT >::deleteFilteredEntities (uint64 && bitset, States &&\&.\&.\&. values)"
+
+.PP
+Removes all entities which have flags set to specific values\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbitset\fP The bitset of flags, which filters entities not matching given values\&. 
+.br
+\fIvalues\fP States of flags chosen by the bitset to filter out entities\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIStates\fP Boolean types of passed flag states\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of deleted entities\&.
+.RE
+.PP
+If the number of passed values is smaller than flags specified in the bitset, the rest of the states is by default set to false\&. All extra passed states are ignored\&.
+.PP
+Example: 
+.PP
+.nf
+manager\&.deleteFilteredEntities(ecs::uint64{0b101}, true, false, false);  // the last "false" state is ignored
+manager\&.deleteFilteredEntities(ecs::uint64{0b1101}, true)  // equal to (ecs::uint64{0b1101}, true, false, false)
+
+.fi
+.PP
+ 
+.SS "template<typename TypeListT > template<uint16 TypeIndex> meta::TypeAt<TypeIndex, TypeListT>& \fBecs::Manager\fP< TypeListT >::getComponent (const uint64 entity_id)"
+
+.PP
+Gets the component reference from the pool\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fITypeIndex\fP Decimal index of the type of a component in the component pool\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+If exists, the requested component is returned\&.
+.RE
+.PP
+If there is no such given TypeIndex or entity_id is incorrect, this method will throw an exception\&. 
+.SS "template<typename TypeListT > template<typename ComponentT > ComponentT& \fBecs::Manager\fP< TypeListT >::getComponent (const uint64 entity_id)"
+
+.PP
+Gets the component reference from the pool using component type\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP Type of the requested component\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+If exists, the requested component is returned\&.
+.RE
+.PP
+If there is no such given component type in the pool or entity_id is incorrect, this method throws an exception\&. 
+.SS "template<typename TypeListT > template<uint16 TypeIndex> std::vector<\fBComponentWrapper\fP<meta::TypeAt<TypeIndex, TypeListT> > >& \fBecs::Manager\fP< TypeListT >::getComponentBucket ()"
+
+.PP
+Gets the vector of wrapped (see explanation below) components\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fITypeIndex\fP Decimal index of the type of a component in the component pool\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bucket containing wrapped components\&.
+.RE
+.PP
+All components are wrapped in the \fBComponentWrapper\fP\&. To access them, we can simply use () operator or eComponent() method\&.
+.PP
+Example: 
+.PP
+.nf
+Manager<int, float, char> manager;
+
+// adding some entities with all three components\&.\&.\&.
+
+auto &vec_of_floats = manager\&.getComponentBucket<1>();
+float &data = vec_of_floats[0]\&.eComponent();
+// or
+float &data2 = vec_of_floats[0]();
+
+.fi
+.PP
+.PP
+If there is no such given TypeIndex, this method will throw an exception\&. 
+.SS "template<typename TypeListT > template<typename ComponentT > std::vector<\fBComponentWrapper\fP<ComponentT> >& \fBecs::Manager\fP< TypeListT >::getComponentBucket ()"
+
+.PP
+Gets the vector of wrapped (see explanation below) components\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP Type of the requested component bucket\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bucket containing wrapped components\&.
+.RE
+.PP
+All components are wrapped in the \fBComponentWrapper\fP\&. To access them, we can simply use () operator or eComponent() method\&.
+.PP
+Example: 
+.PP
+.nf
+Manager<int, float, char> manager;
+
+// adding some entities with all three components\&.\&.\&.
+
+auto &vec_of_floats = manager\&.getComponentBucket<float>();
+float &data = vec_of_floats[0]\&.eComponent();
+// or
+float &data2 = vec_of_floats[0]();
+
+.fi
+.PP
+.PP
+If there is no such given TypeIndex, this method will throw an exception\&. 
+.SS "template<typename TypeListT > const uint64& \fBecs::Manager\fP< TypeListT >::getCurrentEntityCount () const\fC [noexcept]\fP"
+
+.PP
+Gets the current number of existing entities in the buffer\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The current entity count\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+Also this method is safe to use as it will not throw any exception when passed arguments don't exist\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > const std::vector<uint64>& \fBecs::Manager\fP< TypeListT >::getEntityBuffer () const"
+
+.PP
+Gets the vector of entity ids\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The entity buffer\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > const bool \fBecs::Manager\fP< TypeListT >::getFlag (const uint64 flagBit, const uint64 entity_id) const"
+
+.PP
+Gets the flag status (1 or 0) of a given flag type and entity\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIflagBit\fP The flag's bitwise position\&. 
+.br
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The flag\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > std::vector<uint64>& \fBecs::Manager\fP< TypeListT >::getFlagBuffer ()"
+
+.PP
+Gets the vector of entities' flags\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The flag buffer\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > static \fBManager\fP<TypeListT>& \fBecs::Manager\fP< TypeListT >::getInstance (const uint64 max_entity_count = \fCuint64{1000}\fP)\fC [static]\fP"
+
+.PP
+Gets an instance of the \fBManager\fP class\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fImax_entity_count\fP The maximum entity count possible to add to the buffer\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fITypeListT\fP The component pool (types of components) used by all entities in the buffer\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The instance of the \fBManager\fP singleton class\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > template<typename\&.\&.\&. ComponentListT> auto \fBecs::Manager\fP< TypeListT >::getMatchingComponentPack (const uint64 & entity_id)\fC [private]\fP"
+
+.PP
+Convenience helper method getting components for use in \fBapplySystem()\fP 
+.SS "template<typename TypeListT > const uint64& \fBecs::Manager\fP< TypeListT >::getMaxEntityCount () const\fC [noexcept]\fP"
+
+.PP
+Gets the maximal possible number of entities that can fit into the buffer\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The maximum entity count\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+Also this method is safe to use as it will not throw any exception when passed arguments don't exist\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > \fBThreadPool\fP& \fBecs::Manager\fP< TypeListT >::getThreadPool ()"
+
+.PP
+Gets the \fBThreadPool\fP instance of the \fBManager\fP class\&. 
+.PP
+\fBReturns\fP
+.RS 4
+A reference to the \fBThreadPool\fP instance\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > \fBManager\fP<TypeListT>& \fBecs::Manager\fP< TypeListT >::operator= (const \fBManager\fP< TypeListT > & copy)\fC [delete]\fP"
+
+.SS "template<typename TypeListT > \fBManager\fP<TypeListT>& \fBecs::Manager\fP< TypeListT >::operator= (\fBManager\fP< TypeListT > && source)\fC [delete]\fP"
+
+.SS "template<typename TypeListT > void \fBecs::Manager\fP< TypeListT >::setFlag (const uint64 flagBit, const uint64 entity_id, const bool value)\fC [noexcept]\fP"
+
+.PP
+Sets the flag status of the given bitwise position, entity id to the passed boolean value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIflagBit\fP The flag's bitwise position\&. 
+.br
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.br
+\fIvalue\fP The value which the flag's status will be set to\&.
+.RE
+.PP
+If given entity_id does not exist, this method does nothing\&.
+.PP
+\fBNote\fP
+.RS 4
+Also this method is safe to use as it will not throw any exception when passed arguments don't exist\&. 
+.RE
+.PP
+
+.SS "template<typename TypeListT > void \fBecs::Manager\fP< TypeListT >::setFlagsForAll (const uint64 flagBit, const bool value)"
+
+.PP
+Sets the flag status of the given bitwise position to the passed boolean value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIflagBit\fP The flag's bitwise position\&. 
+.br
+\fIvalue\fP The value which the flag's status will be set to\&. 
+.RE
+.PP
+
+.SH "Friends And Related Function Documentation"
+.PP 
+.SS "template<typename TypeListT > friend class \fBInterface\fP\fC [friend]\fP"
+
+.SH "Member Data Documentation"
+.PP 
+.SS "template<typename TypeListT > \fBComponentBuffer\fP<TypeListT> \fBecs::Manager\fP< TypeListT >::m_componentBuffer\fC [private]\fP"
+Stores all components\&. 
+.SS "template<typename TypeListT > constexpr const uint16 \fBecs::Manager\fP< TypeListT >::m_componentCount = meta::TypeListSize<TypeListT>\fC [static]\fP, \fC [constexpr]\fP, \fC [private]\fP"
+Number of component types\&. 
+.SS "template<typename TypeListT > std::vector<uint64> \fBecs::Manager\fP< TypeListT >::m_entityBuffer\fC [private]\fP"
+Stores all entities\&. 
+.SS "template<typename TypeListT > std::vector<uint64> \fBecs::Manager\fP< TypeListT >::m_entityComponents\fC [private]\fP"
+Stores component bitsets of all entities\&. 
+.SS "template<typename TypeListT > uint64 \fBecs::Manager\fP< TypeListT >::m_entityCount\fC [private]\fP"
+Number of currently existing entities\&. 
+.SS "template<typename TypeListT > std::vector<uint64> \fBecs::Manager\fP< TypeListT >::m_entityFlags\fC [private]\fP"
+Stores flags of all entities\&. 
+.SS "template<typename TypeListT > uint16 \fBecs::Manager\fP< TypeListT >::m_flagCount\fC [private]\fP"
+Number of existing entity flags\&. 
+.SS "template<typename TypeListT > uint64 \fBecs::Manager\fP< TypeListT >::m_maxEntityCount\fC [private]\fP"
+The max number of entities\&. 
+.SS "template<typename TypeListT > uint64 \fBecs::Manager\fP< TypeListT >::m_nextEntityID\fC [static]\fP, \fC [private]\fP"
+Used and incremented in every case when entity is added to the buffer 
+.SS "template<typename TypeListT > \fBThreadPool\fP \fBecs::Manager\fP< TypeListT >::m_threadPool\fC [private]\fP"
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Entity Component System from the source code\&.

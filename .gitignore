@@ -33,7 +33,6 @@
 
 # Development
 dev/
-doc/*
 cmake/*
 build/*
 bin/*

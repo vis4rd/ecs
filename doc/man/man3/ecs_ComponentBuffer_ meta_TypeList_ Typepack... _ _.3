@@ -1,0 +1,458 @@
+.TH "ecs::ComponentBuffer< meta::TypeList< Typepack... > >" 3 "Sat Aug 28 2021" "Version 0.1.0" "Entity Component System" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+ecs::ComponentBuffer< meta::TypeList< Typepack... > > \- The \fBComponentBuffer\fP handling entities' conmponents\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <ComponentBuffer\&.h>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBComponentBuffer\fP (const uint64 max_entity_count=uint64{1000})"
+.br
+.ti -1c
+.RI "template<typename ComponentT > std::vector< \fBComponentWrapper\fP< ComponentT > > & \fBgetComponentBucket\fP ()"
+.br
+.RI "Gets the vector of components of given type\&. "
+.ti -1c
+.RI "template<typename ComponentT > std::optional< ComponentT > & \fBtryGetComponent\fP (const uint64 entity_id) noexcept"
+.br
+.RI "Tries to get the specific component from the buffer\&. "
+.ti -1c
+.RI "template<typename ComponentT > ComponentT & \fBgetComponent\fP (const uint64 entity_id)"
+.br
+.RI "Gets the requested component of given type and entity id\&. "
+.ti -1c
+.RI "template<typename\&.\&.\&. ComponentListT> auto \fBgetComponentsMatching\fP (const uint64 entity_id)"
+.br
+.RI "Returns std::tuple with objects of component types matching given entity_id\&. "
+.ti -1c
+.RI "template<typename ComponentT > auto & \fBaddComponent\fP (const uint64 entity_id)"
+.br
+.RI "Adds a new component of given type and entity id to the buffer\&. "
+.ti -1c
+.RI "template<uint16 decimalIndex> auto & \fBaddComponentByIndex\fP (const uint64 entity_id)"
+.br
+.RI "Adds a new component using decimal index of its type in the pool\&. "
+.ti -1c
+.RI "template<uint16 decimalIndex> const std::optional< meta::TypeAt< decimalIndex, \fBm_tPool\fP > > \fBgetComponentByIndex\fP (const uint64 entity_id) const noexcept"
+.br
+.RI "Gets the existing component using decimal index of its type in the pool\&. "
+.ti -1c
+.RI "template<uint16 decimalIndex> std::optional< meta::TypeAt< decimalIndex, \fBm_tPool\fP > > \fBgetComponentByIndex\fP (const uint64 entity_id) noexcept"
+.br
+.RI "Gets the existing component using decimal index of its type in the pool\&. "
+.ti -1c
+.RI "template<uint16 Index = (sizeof\&.\&.\&. (Typepack) \- 1)> void \fBclear\fP () noexcept"
+.br
+.RI "Removes all existing components in the buffer\&. "
+.ti -1c
+.RI "template<uint16 decimalIndex> const bool \fBcheckComponent\fP (const uint64 entity_id) const noexcept"
+.br
+.RI "Checks whether component of given index of type in the pool and entity id exists\&. "
+.ti -1c
+.RI "void \fBremoveComponents\fP (const uint64 entity_id) noexcept"
+.br
+.RI "Removes all components from the buffer belonging to the given entity id\&. "
+.ti -1c
+.RI "template<typename ComponentT > void \fBremoveComponent\fP (const uint64 entity_id)"
+.br
+.RI "Removes a component of given type and entity id from the buffer\&. "
+.ti -1c
+.RI "const uint64 \fBsize\fP () const"
+.br
+.RI "Returns the current number of components in the buffer\&. "
+.ti -1c
+.RI "template<typename ComponentT > const uint64 \fBbucketSize\fP () const"
+.br
+.RI "Returns the current size of the specific bucket containing components of given type\&. "
+.ti -1c
+.RI "void \fBprintAll\fP () const"
+.br
+.RI "Convenience method used for debugging\&. "
+.in -1c
+.SS "Private Types"
+
+.in +1c
+.ti -1c
+.RI "using \fBm_cPool\fP = \fBmeta::ComponentPool\fP< \fBComponentWrapper\fP< Typepack > \&.\&.\&. >"
+.br
+.ti -1c
+.RI "using \fBm_tPool\fP = meta::TypeList< Typepack\&.\&.\&. >"
+.br
+.in -1c
+.SS "Private Attributes"
+
+.in +1c
+.ti -1c
+.RI "meta::metautil::TupleOfVectorsOfTypes< \fBm_cPool\fP > \fBm_cBuffer\fP"
+.br
+.ti -1c
+.RI "uint64 \fBm_maxEntityCount\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<typename\&.\&.\&. Typepack>
+.br
+class ecs::ComponentBuffer< meta::TypeList< Typepack\&.\&.\&. > >"
+The \fBComponentBuffer\fP handling entities' conmponents\&. 
+
+
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fITypepack\fP Pack of component types used in the buffer\&.
+.RE
+.PP
+Every component is wrapped in the buffer so that in some places interface is unified\&. \fBComponentWrapper\fP also helps in recognizing which components belong to which entities\&. 
+.SH "Member Typedef Documentation"
+.PP 
+.SS "template<typename\&.\&.\&. Typepack> using \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::\fBm_cPool\fP =  \fBmeta::ComponentPool\fP<\fBComponentWrapper\fP<Typepack> \&.\&.\&.>\fC [private]\fP"
+
+.SS "template<typename\&.\&.\&. Typepack> using \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::\fBm_tPool\fP =  meta::TypeList<Typepack\&.\&.\&.>\fC [private]\fP"
+
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "template<typename\&.\&.\&. Typepack> \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::\fBComponentBuffer\fP (const uint64 max_entity_count = \fCuint64{1000}\fP)"
+
+.SH "Member Function Documentation"
+.PP 
+.SS "template<typename\&.\&.\&. Typepack> template<typename ComponentT > auto& \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::addComponent (const uint64 entity_id)"
+
+.PP
+Adds a new component of given type and entity id to the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP The type of the added component\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+If both component type and entity id are valid, the created instance of component is returned\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+This method does not check whether such component already exists\&. If there are two instances of the same component with equal entity id, the behaviour of whole buffer is undefined\&. For additional safety in this matter, see \fBtryGetComponent()\fP method\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+std::optional<ComponentT> &\fBtryGetComponent(const uint64 entity_id)\fP noexcept
+.RE
+.PP
+The returned component reference is unwrapped from \fBComponentWrapper\fP\&. 
+.SS "template<typename\&.\&.\&. Typepack> template<uint16 decimalIndex> auto& \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::addComponentByIndex (const uint64 entity_id)"
+
+.PP
+Adds a new component using decimal index of its type in the pool\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIdecimalIndex\fP Index of the component type in the pool\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+If both component index and entity id are valid, the created instance of component is returned\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+This method does not check whether such component already exists\&. If there are two instances of the same component with equal entity id, the behaviour of whole buffer is undefined\&. For additional safety in this matter, see \fBtryGetComponent()\fP method\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+std::optional<ComponentT> &\fBtryGetComponent(const uint64 entity_id)\fP noexcept
+.RE
+.PP
+The returned component reference is unwrapped from \fBComponentWrapper\fP\&. 
+.SS "template<typename\&.\&.\&. Typepack> template<typename ComponentT > const uint64 \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::bucketSize () const"
+
+.PP
+Returns the current size of the specific bucket containing components of given type\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP Type of the component, which container's size is requested\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Decimal number of components in the bucket of passed type\&.
+.RE
+.PP
+The size value is acquired by calling \fBgetComponentBucket()\fP method, so all safety/exception rules apply from it\&.
+.PP
+\fBSee also\fP
+.RS 4
+std::vector<ComponentWrapper<ComponentT>> &\fBgetComponentBucket()\fP 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> template<uint16 decimalIndex> const bool \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::checkComponent (const uint64 entity_id) const\fC [noexcept]\fP"
+
+.PP
+Checks whether component of given index of type in the pool and entity id exists\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIdecimalIndex\fP Index of the component type in the pool\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The boolean value specifying whether such component exists or not\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+Although this method is marked noexcept, it still can terminate the program when given decimalIndex is invalid (out of range)\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> template<uint16 Index = (sizeof\&.\&.\&. (Typepack) \- 1)> void \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::clear ()\fC [noexcept]\fP"
+
+.PP
+Removes all existing components in the buffer\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIIndex\fP This parameter should not be explicitly passed by the user, as it is used only as a help for template recursion\&.
+.RE
+.PP
+Explicitly passing a value to the Index will cause program termination or incorrect clear of the buffer\&. 
+.SS "template<typename\&.\&.\&. Typepack> template<typename ComponentT > ComponentT& \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::getComponent (const uint64 entity_id)"
+
+.PP
+Gets the requested component of given type and entity id\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP The type of the requested component\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+If the type and entity id exists, the requested component is returned\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+This method is unsafe, beacuse if any of the passed arguments/params are invalid, it throws an exception\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> template<typename ComponentT > std::vector<\fBComponentWrapper\fP<ComponentT> >& \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::getComponentBucket ()"
+
+.PP
+Gets the vector of components of given type\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP The type of the requested component\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The component bucket if the given type exists, otherwise an exception is thrown\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+This method returns vector of wrapped components\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> template<uint16 decimalIndex> const std::optional<meta::TypeAt<decimalIndex, \fBm_tPool\fP> > \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::getComponentByIndex (const uint64 entity_id) const\fC [noexcept]\fP"
+
+.PP
+Gets the existing component using decimal index of its type in the pool\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIdecimalIndex\fP Index of the component type in the pool\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+If both component index and entity id are valid, the requested instance of component is returned wrapped in std::optional object\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+If there's no component with given entity id or type index is invalid, the returned value is std::nullopt instead\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> template<uint16 decimalIndex> std::optional<meta::TypeAt<decimalIndex, \fBm_tPool\fP> > \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::getComponentByIndex (const uint64 entity_id)\fC [noexcept]\fP"
+
+.PP
+Gets the existing component using decimal index of its type in the pool\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIdecimalIndex\fP Index of the component type in the pool\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+If both component index and entity id are valid, the requested instance of component is returned wrapped in std::optional object\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+If there's no component with given entity id or type index is invalid, the returned value is std::nullopt instead\&.
+.RE
+.PP
+This is a non-const version of this method provided for convenience\&. 
+.SS "template<typename\&.\&.\&. Typepack> template<typename\&.\&.\&. ComponentListT> auto \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::getComponentsMatching (const uint64 entity_id)"
+
+.PP
+Returns std::tuple with objects of component types matching given entity_id\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentListT\fP The list of types of requested components\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The list of components matching passed ComponentListT\&.
+.RE
+.PP
+This method neither does check whether user passed any component types as template parameters nor checks if given component types exist in the pool\&.
+.PP
+\fBWarning\fP
+.RS 4
+This metod is unsafe, because if any of the passed arguments/params are invalid, it throws an exception\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> void \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::printAll () const"
+
+.PP
+Convenience method used for debugging\&. It prints all types and component values currently existing in the buffer\&. 
+.SS "template<typename\&.\&.\&. Typepack> template<typename ComponentT > void \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::removeComponent (const uint64 entity_id)"
+
+.PP
+Removes a component of given type and entity id from the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP Type of the component which is supposed to be removed\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+This method will throw an exception if given component type or entity id are invalid\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> void \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::removeComponents (const uint64 entity_id)\fC [noexcept]\fP"
+
+.PP
+Removes all components from the buffer belonging to the given entity id\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&.
+.RE
+.PP
+\fBNote\fP
+.RS 4
+This method is safe to use as it will not throw any exception and given arguments can be invalid\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> const uint64 \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::size () const"
+
+.PP
+Returns the current number of components in the buffer\&. 
+.PP
+\fBReturns\fP
+.RS 4
+Decimal number of components in the buffer\&. 
+.RE
+.PP
+
+.SS "template<typename\&.\&.\&. Typepack> template<typename ComponentT > std::optional<ComponentT>& \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::tryGetComponent (const uint64 entity_id)\fC [noexcept]\fP"
+
+.PP
+Tries to get the specific component from the buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP The type of the requested component\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+std::optional object\&. If given componentn type does not exist, this method returns std::nullopt\&. Otherwise gets an existing component or creates and returns a new one\&. 
+.RE
+.PP
+
+.SH "Member Data Documentation"
+.PP 
+.SS "template<typename\&.\&.\&. Typepack> meta::metautil::TupleOfVectorsOfTypes<\fBm_cPool\fP> \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::m_cBuffer\fC [private]\fP"
+Container holding all components in the buffer\&. 
+.SS "template<typename\&.\&.\&. Typepack> uint64 \fBecs::ComponentBuffer\fP< meta::TypeList< Typepack\&.\&.\&. > >::m_maxEntityCount\fC [private]\fP"
+Maximal possible number of entities which can fit into the buffer\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Entity Component System from the source code\&.

@@ -1,0 +1,176 @@
+.TH "ecs::ComponentWrapper< ComponentT >" 3 "Sat Aug 28 2021" "Version 0.1.0" "Entity Component System" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+ecs::ComponentWrapper< ComponentT > \- Class wrapping components for \fBComponentBuffer\fP\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <ComponentWrapper\&.h>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBComponentWrapper\fP ()=default"
+.br
+.RI "Default constructor\&. "
+.ti -1c
+.RI "\fBComponentWrapper\fP (const uint64 &entity_id)"
+.br
+.RI "Special constructor which allows creation of \fBComponentWrapper\fP instance given type of the component and its entity id\&. "
+.ti -1c
+.RI "\fBComponentWrapper\fP (const ComponentT &comp)"
+.br
+.RI "Special constructor which allows wrapping component without specifying its entity id\&. "
+.ti -1c
+.RI "const ComponentT & \fBoperator()\fP () const"
+.br
+.RI "Parenthesis operator overload which gets the unwrapped component instance\&. "
+.ti -1c
+.RI "ComponentT & \fBoperator()\fP ()"
+.br
+.RI "Parenthesis operator overload which gets the unwrapped component instance\&. "
+.ti -1c
+.RI "const uint64 & \fBeID\fP () const"
+.br
+.RI "Gets the entity id tied to the wrapped component instance\&. "
+.ti -1c
+.RI "const ComponentT & \fBeComponent\fP () const"
+.br
+.RI "Gets the unwrapped component instance\&. "
+.ti -1c
+.RI "ComponentT & \fBeComponent\fP ()"
+.br
+.RI "Gets the unwrapped component instance\&. "
+.ti -1c
+.RI "void \fBprintType\fP () const"
+.br
+.RI "Prints component type name to the console\&. "
+.in -1c
+.SS "Private Attributes"
+
+.in +1c
+.ti -1c
+.RI "ComponentT \fBm_component\fP"
+.br
+.ti -1c
+.RI "uint64 \fBm_entityID\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SS "template<typename ComponentT>
+.br
+class ecs::ComponentWrapper< ComponentT >"
+Class wrapping components for \fBComponentBuffer\fP\&. 
+
+
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIComponentT\fP Type of component instance which is to be wrapped
+.RE
+.PP
+Main reason the wrapper exists is that components in the buffer must be tied somehow with their respective entity id\&. 
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "template<typename ComponentT > \fBecs::ComponentWrapper\fP< ComponentT >::\fBComponentWrapper\fP ()\fC [default]\fP"
+
+.PP
+Default constructor\&. 
+.SS "template<typename ComponentT > \fBecs::ComponentWrapper\fP< ComponentT >::\fBComponentWrapper\fP (const uint64 & entity_id)\fC [explicit]\fP"
+
+.PP
+Special constructor which allows creation of \fBComponentWrapper\fP instance given type of the component and its entity id\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIentity_id\fP The entity identifier (automatically attached to every created entity)\&. 
+.RE
+.PP
+
+.SS "template<typename ComponentT > \fBecs::ComponentWrapper\fP< ComponentT >::\fBComponentWrapper\fP (const ComponentT & comp)\fC [explicit]\fP"
+
+.PP
+Special constructor which allows wrapping component without specifying its entity id\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcomp\fP The component instance which will be wrapped\&. 
+.RE
+.PP
+
+.SH "Member Function Documentation"
+.PP 
+.SS "template<typename ComponentT > ComponentT& \fBecs::ComponentWrapper\fP< ComponentT >::eComponent ()"
+
+.PP
+Gets the unwrapped component instance\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The unwrapped component instance\&. 
+.RE
+.PP
+
+.SS "template<typename ComponentT > const ComponentT& \fBecs::ComponentWrapper\fP< ComponentT >::eComponent () const"
+
+.PP
+Gets the unwrapped component instance\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The const unwrapped component instance\&. 
+.RE
+.PP
+
+.SS "template<typename ComponentT > const uint64& \fBecs::ComponentWrapper\fP< ComponentT >::eID () const"
+
+.PP
+Gets the entity id tied to the wrapped component instance\&. 
+.PP
+\fBReturns\fP
+.RS 4
+Decimal unsigned number representing entity id\&. 
+.RE
+.PP
+
+.SS "template<typename ComponentT > ComponentT& \fBecs::ComponentWrapper\fP< ComponentT >::operator() ()"
+
+.PP
+Parenthesis operator overload which gets the unwrapped component instance\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The unwrapped component instance
+.RE
+.PP
+This is a non-const version of this method provided for convenience\&. 
+.SS "template<typename ComponentT > const ComponentT& \fBecs::ComponentWrapper\fP< ComponentT >::operator() () const"
+
+.PP
+Parenthesis operator overload which gets the unwrapped component instance\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The unwrapped component instance 
+.RE
+.PP
+
+.SS "template<typename ComponentT > void \fBecs::ComponentWrapper\fP< ComponentT >::printType () const"
+
+.PP
+Prints component type name to the console\&. It's purpose is for debugging only\&. 
+.SH "Member Data Documentation"
+.PP 
+.SS "template<typename ComponentT > ComponentT \fBecs::ComponentWrapper\fP< ComponentT >::m_component\fC [private]\fP"
+The wrapped component instance\&. 
+.SS "template<typename ComponentT > uint64 \fBecs::ComponentWrapper\fP< ComponentT >::m_entityID\fC [private]\fP"
+The entity id tied to the componentn instance\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Entity Component System from the source code\&.
